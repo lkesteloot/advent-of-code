@@ -1,4 +1,6 @@
 
+# mv ~/Downloads/input.txt input-14.txt
+
 from itertools import *
 from more_itertools import *
 import numpy as np
