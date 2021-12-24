@@ -1,0 +1,449 @@
+w = input()
+z /= 1 or 26
+x = (z%26 + A) != w
+y = 25*x + 1            # Add 1 or 26
+z *= y
+y = (w + B)*x
+z = z + y
+
+for w in string:
+    z /= 1 or 26
+    if z%26 + A != w:
+        z = z*26 + w + B
+
+if dividing by 26, then we only care about previous z value, since w + B is ignored.
+if dividing by 1, only care about w + B
+
+valid = z == 0
+
+---
+
+input w
+if 13 != w:
+    z = z*26 + w + 10
+
+input w
+if z%26 + 11 != w:
+    z = z*26 + w + 16
+
+input w
+if z%26 + 11 != w:
+    z = z*26 + w + 0
+
+input w
+if z%26 + 10 != w:
+    z = z*26 + w + 13
+
+input w
+z /= 26
+if z%26 + -14 != w:
+    z = z*26 + w + 7
+
+input w
+z /= 26
+if z%26 + -4 != w:
+    z = z*26 + w + 11
+
+input w
+if z%26 + 11 != w:
+    z = z*26 + w + 11
+
+input w
+z /= 26
+if z%26 + -3 != w:
+    z = z*26 + w + 10
+
+input w
+if z%26 + 12 != w:
+    z = z*26 + w + 16
+
+input w
+z /= 26
+if z%26 + -12 != w:
+    z = z*26 + w + 8
+
+input w
+if z%26 + 13 != w:
+    z = z*26 + w + 15
+
+input w
+z /= 26
+if z%26 + -12 != w:
+    z = z*26 + w + 2
+
+input w
+z /= 26
+if z%26 + -15 != w:
+    z = z*26 + w + 5
+
+input w
+z /= 26
+if z%26 + -12 != w:
+    z = z*26 + w + 10
+
+valid = z == 0
+
+---
+
+14 of them
+
+     1   1   1   1   26   26   1   26   1   26   1   26   26   26
+A:  13  11  11  10  -14   -4  11   -3  12  -12  13  -12  -15  -12
+B:  10  16   0  13    7   11  11   10  16    8  15    2    5   10
+
+
+inp w
+mul x 0
+add x z
+mod x 26
+div z 1   #  1 or 26
+add x 13  #  all sorts incl negative
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 10   #  all sorts non-negative
+mul y x
+add z y
+
+
+inp w
+mul x 0
+add x z
+mod x 26
+div z 1
+add x 11
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 16
+mul y x
+add z y
+inp w
+mul x 0
+add x z
+mod x 26
+div z 1
+add x 11
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 0
+mul y x
+add z y
+inp w
+mul x 0
+add x z
+mod x 26
+div z 1
+add x 10
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 13
+mul y x
+add z y
+inp w
+mul x 0
+add x z
+mod x 26
+div z 26
+add x -14
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 7
+mul y x
+add z y
+inp w
+mul x 0
+add x z
+mod x 26
+div z 26
+add x -4
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 11
+mul y x
+add z y
+inp w
+mul x 0
+add x z
+mod x 26
+div z 1
+add x 11
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 11
+mul y x
+add z y
+inp w
+mul x 0
+add x z
+mod x 26
+div z 26
+add x -3
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 10
+mul y x
+add z y
+inp w
+mul x 0
+add x z
+mod x 26
+div z 1
+add x 12
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 16
+mul y x
+add z y
+inp w
+mul x 0
+add x z
+mod x 26
+div z 26
+add x -12
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 8
+mul y x
+add z y
+inp w
+mul x 0
+add x z
+mod x 26
+div z 1
+add x 13
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 15
+mul y x
+add z y
+inp w
+mul x 0
+add x z
+mod x 26
+div z 26
+add x -12
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 2
+mul y x
+add z y
+inp w
+mul x 0
+add x z
+mod x 26
+div z 26
+add x -15
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 5
+mul y x
+add z y
+inp w
+mul x 0
+add x z
+mod x 26
+div z 26
+add x -12
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 10
+mul y x
+add z y
+
+---
+
+# w3 is lost
+z = (w0*26 + 276 + w1)*26 + w2
+
+# w4 is lost
+if w2 - 4 != w5:
+    # 5: does not happen
+    z = z*26 + w5 + 11
+
+# w6 is lost
+# w2 = w7 + 3
+if z%26 - 3 != w7:
+    # 7: does not happen
+    z = z*26 + w7 + 10
+
+# w8 is lost
+# z%26 is either (w7 + 10) or ...
+if z%26 - 12 != w9:
+    # 9: happens
+    z = z*26 + w9 + 8
+
+# w10 is lost
+if z%26 + 13 != w10:
+    z = z*26 + w10 + 15
+
+# this is w9 + 8 - 12 = w9 - 4 == w11  or w9 = w11 + 4
+if z%26 - 12 != w11:
+    # 11: does not happen
+    z = z*26 + w11 + 2
+
+# Want z/26%26 = w12 + 15
+# Want w9 = w12 + 7
+z /= 26
+# z = (w0*26 + 276 + w1)*26 + w2
+if z%26 - 15 != w12:
+    # 12: happens
+    # Don't want this. So want z%26 = w12 + 15
+    z = z*26 + w12 + 5
+
+z /= 26
+# z = (w0*26 + 276 + w1)*26 + w2
+# w2 - 12 != w13
+if z%26 - 12 != w13:
+    # 13: INVALID
+    # Don't want this.
+
+valid = z == 0
+
+x *= 0
+x += z
+x %= 26
+z /= Z[i]
+x += A[i]
+x = x != W[i]
+y *= 0
+y += 25
+y *= x
+y += 1
+z *= y
+y *= 0
+y += W[i]
+y += B[i]
+y *= x
+z += y
+
+
+x = z%26 + A[i]
+z /= Z[i]
+x = x != W[i]
+z = z*(25*x + 1) + (W[i] + B[i])*x
+
+
+x = z%26 + A[i]
+z /= Z[i]
+if (x != W[i]) {
+    z = z*26 + W[i] + B[i]
+}
+
+
+inp w
+mul x 0      z/26*(((z%26 - 12 == w13) == 0)*25 + 1) + (w13 + 10)*((z%26 - 12 == w13) == 0) = 0
+add x z      z/26*((((x + z)%26 - 12 == w13) == 0)*25 + 1) + (w13 + 10)*(((x + z)%26 - 12 == w13) == 0) = 0
+mod x 26     z/26*(((x%26 - 12 == w13) == 0)*25 + 1) + (w13 + 10)*((x%26 - 12 == w13) == 0) = 0
+div z 26     z/26*(((x - 12 == w13) == 0)*25 + 1) + (w13 + 10)*((x - 12 == w13) == 0) = 0
+add x -12    z*(((x - 12 == w13) == 0)*25 + 1) + (w13 + 10)*((x - 12 == w13) == 0) = 0
+eql x w      z*(((x == w13) == 0)*25 + 1) + (w13 + 10)*((x == w13) == 0) = 0
+eql x 0      z*((x == 0)*25 + 1) + (w13 + 10)*(x == 0) = 0
+mul y 0      z*(x*25 + 1) + (w13 + 10)*x = 0
+add y 25     z*(x*(y + 25) + 1) + (w13 + 10)*x = 0
+mul y x      z*(x*y + 1) + (w13 + 10)*x = 0
+add y 1      z*(y + 1) + (w13 + 10)*x = 0
+mul z y      z*y + (w13 + 10)*x = 0
+mul y 0      z + (w13 + 10)*x = 0
+add y w      z + (y + w13 + 10)*x = 0
+add y 10     z + (y + 10)*x = 0
+mul y x      z + y*x = 0
+add z y      z + y = 0
+             z = 0
+
