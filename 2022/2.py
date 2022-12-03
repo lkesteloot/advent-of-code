@@ -1,17 +1,11 @@
 
 lines = [line.strip() for line in open("input-2.txt")]
 
-MAP = {
-        "A": 0,
-        "B": 1,
-        "C": 2,
-}
-
 score = 0
 for line in lines:
     theirs, outcome = line.split(" ")
 
-    theirs = MAP[theirs]
+    theirs = ord(theirs) - 65
 
     if outcome == "X":
         ours = (theirs + 2) % 3

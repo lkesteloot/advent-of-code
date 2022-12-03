@@ -11,5 +11,5 @@ from more_itertools import *
 # import scipy.signal
 
 lines = [line.strip() for line in open("input-xx-test.txt")]
-matrix = [list(map(int, list(line))) for line in lines]
+# matrix = [list(map(int, list(line))) for line in lines]
 
