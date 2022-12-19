@@ -1,15 +1,6 @@
 
-# mv ~/Downloads/input.txt input-16.txt
-
-import sys
 import re
-from collections import defaultdict, Counter, deque
-from itertools import *
-from functools import *
-# https://more-itertools.readthedocs.io/en/stable/
-from more_itertools import *
-# import numpy as np
-# import scipy.signal
+import collections
 
 lines = [line.strip() for line in open("input-16-test.txt")]
 #lines = [line.strip() for line in open("input-16.txt")]
@@ -31,7 +22,7 @@ for line in lines:
     vs[name] = v
 
 def get_dist(start_name):
-    q = deque([(start_name, 0)])
+    q = collections.deque([(start_name, 0)])
     d = {}
     while q:
         name, dist = q.popleft()
@@ -51,21 +42,36 @@ dists = {}
 for name in vs:
     dists[name] = get_dist(name)
 
-def get_pressure_from_room(name, opened, time_left):
+def get_pressure(names, opened, time_left, other_left):
     if time_left <= 2:
         return 0
 
+    # Working on the first person.
+    name = names[0]
+
     pressure = 0
+
     for new_name, dist in dists[name].items():
         if new_name not in opened and dist + 1 < time_left:
-            this_opened = opened + [new_name]
+            opened.add(new_name)
             new_pressure = (time_left - dist - 1)*vs[new_name].flow
-            p = new_pressure + get_pressure_from_room(new_name, this_opened, time_left - dist - 1)
+            new_time_left = time_left - dist - 1
+            new_other_left = other_left - dist - 1
+            if new_other_left >= 0:
+                new_names = [new_name, names[1]]
+            else:
+                new_names = [names[1], new_name]
+                new_other_left = -new_other_left
+                new_time_left += new_other_left
+
+            p = new_pressure + get_pressure(new_names, opened, new_time_left, new_other_left)
             if p > pressure:
                 pressure = p
+            opened.remove(new_name)
 
     return pressure
 
-pressure = get_pressure_from_room(aa.name, [], 30)
+#pressure = get_pressure([aa.name, aa.name], set(), 30, 100)
+pressure = get_pressure([aa.name, aa.name], set(), 26, 0)
 print(pressure)
 
