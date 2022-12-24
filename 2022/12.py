@@ -19,8 +19,10 @@ orig_lines = lines
 W = len(orig_lines[0])
 H = len(orig_lines)
 
+cache = {}  # (xx, yy) to best distance
+
 def foo(xx, yy):
-    global W, H, orig_lines
+    global W, H, orig_lines, cache
     lines = [list(line) for line in orig_lines]
 
     heap = []
@@ -48,6 +50,12 @@ def foo(xx, yy):
 
     while len(heap) > 0:
         weight, y, x = heapq.heappop(heap)
+
+        p = (x, y)
+        if p in cache:
+            w = cache[p]
+            #return w + weight
+
         #print(weight, y, x)
         w = weights[y][x] + 1
         if x > 0 and ord(lines[y][x - 1]) <= ord(lines[y][x]) + 1 and w < weights[y][x - 1]:
@@ -68,9 +76,11 @@ def foo(xx, yy):
 
 min_w = 10000
 for yy in range(H):
+    print(yy, H)
     for xx in range(W):
         w = foo(xx, yy)
-        print(xx, yy, w)
+        cache[(xx,yy)] = w
+        #print(xx, yy, w)
         if w is not None and w < min_w:
             min_w = w
 print(min_w)
