@@ -3,7 +3,7 @@ from collections import defaultdict
 import heapq
 
 lines = [line.strip() for line in open("input-24-test.txt")]
-#lines = [line.strip() for line in open("input-24.txt")]
+lines = [line.strip() for line in open("input-24.txt")]
 
 blizzards = defaultdict(lambda: [])  # (x, y) -> [(dx, dy)]
 
