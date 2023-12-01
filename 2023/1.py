@@ -1,23 +1,20 @@
 
 lines = [line.strip() for line in open("input-1.txt")]
 
-digits = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
+WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
 
 def fix(line):
-    first = None
-    last = None
+    digits = []
     for i, ch in enumerate(line):
-        dd = None
-        for j, d in enumerate(digits):
-            if line[i:].startswith(d):
-                dd = j + 1
+        digit = None
+        for j, word in enumerate(WORDS):
+            if line[i:].startswith(word):
+                digit = j
         if ch.isdigit():
-            dd = int(ch)
-        if dd is not None and first is None:
-            first = dd
-        if dd is not None:
-            last = dd
-    return first*10 + last
+            digit = int(ch)
+        if digit is not None:
+            digits.append(digit)
+    return digits[0]*10 + digits[-1]
 
 print(sum(fix(line) for line in lines))
 
