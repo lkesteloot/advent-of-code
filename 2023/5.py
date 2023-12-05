@@ -1,5 +1,7 @@
 
-lines = [line.strip() for line in open("input-5.txt")]
+from itertools import chain
+
+lines = open("input-5.txt").read().splitlines()
 
 class Span:
     def __init__(self, begin, end):
@@ -20,23 +22,21 @@ class Mapping:
         self.maps.sort(key=lambda mmap: mmap[0].begin)
 
     def map_span(self, span):
-        out_spans = []
-
         for src_span, dst_span in self.maps:
             # Before
             begin = min(span.begin, src_span.begin)
             end = min(span.end, src_span.begin)
             if begin < end:
-                out_spans.append(Span(begin, end))
+                yield Span(begin, end)
                 span = Span(end, span.end)
 
             # Inside
             begin = max(span.begin, src_span.begin)
             end = min(span.end, src_span.end)
             if begin < end:
-                out_spans.append(Span(
+                yield Span(
                     dst_span.begin + begin - src_span.begin,
-                    dst_span.end + end - src_span.end))
+                    dst_span.end + end - src_span.end)
                 span = Span(end, span.end)
 
             if span.begin >= span.end:
@@ -44,9 +44,7 @@ class Mapping:
 
         # After
         if span.begin < span.end:
-            out_spans.append(span)
-
-        return out_spans
+            yield span
 
 mappings = []
 mapping = None
@@ -65,15 +63,10 @@ for line_number, line in enumerate(lines):
         dst, src, length = map(int, line.split())
         mapping.add_map( (Span(src, src + length), Span(dst, dst + length)) )
 
-for mapping in mappings:
-    mapping.prepare()
-
 spans = seed_spans
 for mapping in mappings:
-    out_spans = []
-    for span in spans:
-        out_spans.extend(mapping.map_span(span))
-    spans = out_spans
-spans.sort(key=lambda span: span.begin)
-print(spans[0].begin)
+    mapping.prepare()
+    spans = chain.from_iterable(map(mapping.map_span, spans))
+
+print(sorted(spans, key=lambda span: span.begin)[0].begin)
 

@@ -10,8 +10,8 @@ from more_itertools import *
 # import numpy as np
 # import scipy.signal
 
-lines = [line.strip() for line in open("input-xx-test.txt")]
-#lines = [line.strip() for line in open("input-xx.txt")]
+lines = open("input-xx-test.txt").read().splitlines()
+lines = open("input-xx.txt").read().splitlines()
 # matrix = [list(map(int, list(line))) for line in lines]
 # name, flow, *neighbors = re.findall(r'([A-Z][A-Z]|[0-9]+)', line)
 # grid = np.array([list(line) for line in lines])
