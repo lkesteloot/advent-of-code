@@ -16,8 +16,7 @@ def process_hand(h):
         else:
             cs[c] += 1
 
-    cs = [count for (c, count) in cs.items()]
-    cs.sort(reverse=True)
+    cs = sorted(cs.values(), reverse=True)
 
     if len(cs) == 0:
         cs = [j]
@@ -42,7 +41,7 @@ def process_hand(h):
     return p, h
 
 lines = [line.split() for line in lines]
-lines = [(process_hand(h), int(b)) for (h, b) in lines]
+lines = [(process_hand(h), int(b)) for h, b in lines]
 lines.sort()
 
-print(sum((i + 1)*line[1] for i, line in enumerate(lines)))
+print(sum((i + 1)*b for i, (h, b) in enumerate(lines)))
