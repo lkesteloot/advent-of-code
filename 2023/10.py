@@ -23,20 +23,20 @@ for i in range(4):
         start_d = i
         break
 else:
-    print("pipe not found")
+    print("start not found")
 
 # Find path.
-on_path = set()
+path = set()
 p = start_p
 d = start_d
 while True:
-    on_path.add(p)
+    path.add(p)
     p = add(p, DELTA[d])
     if p == start_p:
         break
     d = (d + TURNS[d].index(tiles[p]) - 1) % 4
 end_d = d
-print("steps", len(on_path)//2)
+print("steps", len(path)//2)
 
 # Replace S.
 tiles[start_p] = TURNS[end_d][(start_d - end_d + 1) % 4]
@@ -49,7 +49,7 @@ for y in range(height):
     inside = False
     for x in range(width):
         p = x, y
-        if p in on_path:
+        if p in path:
             ch = tiles[p]
             if ch == "F":
                 started_with_F = True
