@@ -1,84 +1,66 @@
 
+from collections import defaultdict
+from itertools import chain
+from more_itertools import pairwise
+
 lines = open("input-14.txt").read().splitlines()
 
 width = len(lines[0])
 height = len(lines)
 
-rolls = {(x, y) for y in range(height) for x in range(width) if lines[y][x] == "O"}
-squares = {(x, y): lines[y][x] for y in range(height) for x in range(width) if lines[y][x] == "#"}
+rolls = [(x, y) for y in range(height) for x in range(width) if lines[y][x] == "O"]
+squares = [(x, y) for y in range(height) for x in range(width) if lines[y][x] == "#"]
+
+# clockwise 90 degrees
+def rotate():
+    global rolls, squares
+    rolls = [(width - 1 - y, x) for x, y in rolls]
+    squares = [(width - 1 - y, x) for x, y in squares]
+
+tile_to_y1 = {}
+for d in range(4):
+    for x in range(width):
+        col_squares = chain(((x, -1),), sorted(p for p in squares if p[0] == x), ((x, height),))
+        for p1, p2 in pairwise(col_squares):
+            y1, y2 = p1[1] + 1, p2[1]
+            for y in range(y1, y2):
+                tile_to_y1[d, x, y] = y1
+    rotate()
+
+squares = [] # Don't need these anymore
 
 def tilt(d):
-    global rolls, squares, width, height
+    global rolls, tile_to_y1
+
+    counts = defaultdict(int)
+    new_rolls = []
+
+    for x, y in rolls:
+        y1 = tile_to_y1[d, x, y]
+        key = x, y1
+        new_rolls.append( (x, y1 + counts[key]) )
+        counts[key] += 1
+
+    rolls = new_rolls
+
+def main():
+    count = 0
+    prev = {} # roll to count
+    prevn = {} # count to roll
     while True:
-        changed = False
-        if d == 0:
-            ps = sorted(rolls, key=lambda p: p[1])
-            for p in ps:
-                np = p[0], p[1] - 1
-                if p[1] > 0 and np not in rolls and np not in squares:
-                    rolls.remove(p)
-                    rolls.add(np)
-                    changed = True
-        elif d == 1:
-            ps = sorted(rolls)
-            for p in ps:
-                np = p[0] - 1, p[1]
-                if p[0] > 0 and np not in rolls and np not in squares:
-                    rolls.remove(p)
-                    rolls.add(np)
-                    changed = True
-        elif d == 2:
-            ps = sorted(rolls, key=lambda p: -p[1])
-            for p in ps:
-                np = p[0], p[1] + 1
-                if p[1] < height - 1 and np not in rolls and np not in squares:
-                    rolls.remove(p)
-                    rolls.add(np)
-                    changed = True
-        elif d == 3:
-            ps = sorted(rolls, key=lambda p: -p[0])
-            for p in ps:
-                np = p[0] + 1, p[1]
-                if p[0] < width - 1 and np not in rolls and np not in squares:
-                    rolls.remove(p)
-                    rolls.add(np)
-                    changed = True
-        if not changed:
+        for d in range(4):
+            tilt(d)
+            rotate()
+        count += 1
+        rolls.sort()
+        key = tuple(rolls)
+        if key in prev:
+            first = prev[key]
+            ans_rolls = prevn[(1000000000 - first) % (count - first) + first]
+            print(sum(height - p[1] for p in ans_rolls))
             break
+        prev[key] = count
+        prevn[count] = key
+        #print(count, sum(height - p[1] for p in rolls))
 
-def pprint():
-    global rolls, squares, width, height
-    for y in range(height):
-        line = ""
-        for x in range(width):
-            p = (x, y)
-            if p in rolls:
-                ch = "O"
-            elif p in squares:
-                ch = "#"
-            else:
-                ch = "."
-            line += ch
-        print(line)
-    print()
-
-count = 0
-prev = {} # roll to count
-prevn = {} # count to roll
-while True:
-    tilt(0)
-    tilt(1)
-    tilt(2)
-    tilt(3)
-    #pprint()
-    count += 1
-    key = tuple(sorted(rolls))
-    if key in prev:
-        first = prev[key]
-        ans_rolls = prevn[(1000000000 - first) % (count - first) + first]
-        print(sum(height - p[1] for p in ans_rolls))
-        break
-    prev[key] = count
-    prevn[count] = key
-    #print(count, sum(height - p[1] for p in rolls))
-
+main()
