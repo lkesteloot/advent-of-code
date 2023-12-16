@@ -15,30 +15,52 @@ for line in lines:
 
     counts = tuple(map(int, counts.split(",")))
 
-    # key is ((counts),expect); value is total
-    states = {
-        (counts, "any"): 1,
-    }
+    if True:
+        # (pattern_index, count_index) => total
+        states = {
+            (0, 0): 1,
+        }
 
-    for ch in pattern:
-        new_states = defaultdict(int)
+        sub_total = 0
+        pattern += "."
+        while states:
+            new_states = defaultdict(int)
 
-        for (counts, expect), total in states.items():
-            if ch == "#" or ch == "?":
-                if (expect == "any" or expect == "#") and len(counts) > 0:
-                    new_count = counts[0] - 1
-                    if new_count == 0:
-                        key = counts[1:], "."
-                    else:
-                        key = (new_count,) + counts[1:], "#"
-                    new_states[key] += total
-            if ch == "." or ch == "?":
-                if expect == "any" or expect == ".":
-                    key = counts, "any"
-                    new_states[key] += total
+            for (pattern_index, count_index), total in states.items():
+                if count_index == len(counts):
+                    if pattern_index == len(pattern):
+                        sub_total += total
+                else:
+                    count = counts[count_index]
+                    if pattern[pattern_index:pattern_index + count].replace("?", "#") == "#"*count and \
+                            pattern[pattern_index + count] != "#":
 
-        states = new_states
+                        new_states[pattern_index + count + 1, count_index + 1] += total
+                if pattern_index < len(pattern) and (pattern[pattern_index] == "." or pattern[pattern_index] == "?"):
+                    new_states[pattern_index + 1, count_index] += total
 
-    grand_total += sum(total for (counts, expect), total in states.items() if len(counts) == 0)
+            states = new_states
+
+        grand_total += sub_total
+    else:
+        # Dynamic programming solution.
+        pattern += "."
+        grid = [[0]*(len(pattern) + 1) for i in range(len(counts) + 1)]
+        grid[0][0] = 1
+
+        for pattern_index in range(len(pattern)):
+            for count_index in range(len(counts) + 1):
+                total = grid[count_index][pattern_index]
+                if total > 0:
+                    if count_index < len(counts):
+                        count = counts[count_index]
+                        if pattern[pattern_index:pattern_index + count].replace("?", "#") == "#"*count and \
+                                pattern[pattern_index + count] != "#":
+
+                            grid[count_index + 1][pattern_index + count + 1] += total
+                    if pattern[pattern_index] != "#":
+                        grid[count_index][pattern_index + 1] += total
+
+        grand_total += grid[-1][-1]
 
 print(grand_total)
