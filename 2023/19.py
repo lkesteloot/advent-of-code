@@ -80,13 +80,10 @@ def count(workflow_name, opts):
             no_high = value
 
         if yes_low <= yes_high:
-            new_opts = dict(opts)
-            new_opts[var] = (yes_low, yes_high)
-            total += count(rule[1], new_opts)
+            total += count(rule[1], opts | {var: (yes_low, yes_high)})
         if no_low > no_high:
             break
-        opts = dict(opts)
-        opts[var] = (no_low, no_high)
+        opts = opts | {var: (no_low, no_high)}
     return total
 
 if part2:
