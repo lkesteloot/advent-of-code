@@ -1,0 +1,16 @@
+broadcaster -> cd
+&dn -> rx
+&fc -> dn
+&cc -> cd, fc, qr, nl, gk, zr
+%cd -> cc, nl
+%qr -> gk
+%mj -> qr, cc
+%nl -> pj
+%gk -> ln
+%zr -> cq
+%ln -> zr, cc
+%cj -> cc, nt
+%cq -> cj, cc
+%nt -> mn, cc
+%pj -> cc, mj
+%mn -> cc

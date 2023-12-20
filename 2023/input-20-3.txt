@@ -1,0 +1,16 @@
+broadcaster -> gz
+&dn -> rx
+&fh -> dn
+&bd -> gm, gz, fh, sv
+%nz -> gm, bd
+%gm -> dj
+%gz -> bd, kb
+%sv -> br
+%kb -> bd, sv
+%dj -> bd, zc
+%br -> nf, bd
+%jk -> bd
+%jq -> ng, bd
+%zc -> jq, bd
+%nf -> bd, nz
+%ng -> jk, bd

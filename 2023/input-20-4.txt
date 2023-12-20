@@ -1,0 +1,16 @@
+&dn -> rx
+broadcaster -> xg
+&xp -> dn
+&pm -> kt, xg, xp, jv, sp
+%pc -> kt, pm
+%kt -> lt
+%xg -> cf, pm
+%zd -> jv, pm
+%jv -> sp
+%sp -> pc
+%cf -> gj, pm
+%gj -> zd, pm
+%lt -> pm, mx
+%mx -> nr, pm
+%nr -> vf, pm
+%vf -> pm

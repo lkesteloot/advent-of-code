@@ -1,0 +1,16 @@
+&dn -> rx
+broadcaster -> sg
+&dd -> dn
+&rs -> sg, dd, sl, kx, nb, rt
+%zx -> rs
+%cl -> zx, rs
+%qs -> cl, rs
+%hd -> qs, rs
+%qq -> hd, rs
+%rt -> qq
+%jx -> rt, rs
+%kx -> jx
+%sl -> kx
+%nb -> sl
+%rh -> nb, rs
+%sg -> rh, rs
