@@ -20,7 +20,7 @@ def do_part(part):
             enabled = True
         elif enabled:
             total += int(m[1]) * int(m[2])
-        pos = m.start() + 1
+        pos = m.end()
 
     print(f"Part {part}: {total}")
 
