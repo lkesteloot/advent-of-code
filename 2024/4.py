@@ -41,7 +41,7 @@ def do_part(part):
 
         ms = four_rots(kernel)
 
-    total = sum(np.count_nonzero(sig.convolve2d(puzzle, m) == target_value)
+    total = sum((sig.convolve2d(puzzle, m) == target_value).sum()
                 for m in ms)
 
     print(f"Part {part}: {total}")
