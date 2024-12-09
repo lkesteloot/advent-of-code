@@ -1,41 +1,34 @@
 
-from itertools import *
-from functools import *
-
 lines = open("input-7-test.txt").read().splitlines()
 lines = open("input-7.txt").read().splitlines()
 
-def compute(a, op, b):
-    if op == "+":
-        return a + b
-    if op == "*":
-        return a * b
-    if op == "||":
-        return int(str(a) + str(b))
-    raise Exception()
+def concat(a, b):
+    return int(str(a) + str(b))
 
-def compute_all(values, ops):
-    return reduce(lambda a, b: (compute(a[0], b[1], b[0]), "?"),
-                  zip(values, ["?"] + list(ops)))
+def matches(solution, accum, values, include_concat):
+    if not values:
+        return accum == solution
+
+    if accum > solution:
+        return False
+
+    first, *rest = values
+    return matches(solution, accum + first, rest, include_concat) or \
+        matches(solution, accum * first, rest, include_concat) or \
+        (include_concat and matches(solution, concat(accum, first), rest, include_concat))
 
 def do_part(part):
-    OPS = ["+", "*"]
-    if part == 2:
-        OPS.append("||")
-
     total = 0
 
     for line in lines:
-        solution, rest = line.split(": ")
+        solution, values = line.split(": ")
         solution = int(solution)
 
-        values = list(map(int, rest.split(" ")))
+        values = list(map(int, values.split(" ")))
 
-        for ops in product(*[OPS]*(len(values) - 1)):
-            result = compute_all(values, ops)[0]
-            if result == solution:
-                total += result
-                break
+        first, *rest = values
+        if matches(solution, first, rest, part == 2):
+            total += solution
 
     print(f"Part {part}: {total}")
 
