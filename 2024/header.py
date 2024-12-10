@@ -17,6 +17,7 @@ lines = open("input-xx-test.txt").read().splitlines()
 # matrix = [list(map(int, list(line))) for line in lines]
 # name, flow, *neighbors = re.findall(r'([A-Z][A-Z]|[0-9]+)', line)
 # grid = np.array([list(line) for line in lines])
+# grid = np.pad(grid, 1, constant_values=-1)
 # yxs = (yx for yx, ch in np.ndenumerate(grid) if is_symbol(ch))
 # tiles = {(x, y): lines[y][x] for y in range(height) for x in range(width)}
 # rolls = {(x, y) for y in range(height) for x in range(width) if lines[y][x] == "O"}
@@ -32,10 +33,10 @@ def do_part(part):
 
 def main():
     for part in [1]:
-        before = time.time()
+        before = time.perf_counter()
         answer = do_part(part)
-        after = time.time()
-        elapsed = round((after - before)*1000000)
+        after = time.perf_counter()
+        elapsed = round((after - before)*1_000_000)
         unit = "µs"
         if elapsed >= 1000:
             elapsed //= 1000
