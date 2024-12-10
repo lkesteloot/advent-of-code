@@ -1,7 +1,7 @@
 
 # mv ~/Downloads/input.txt input-xx.txt
 
-import sys, re
+import sys, re, time
 from collections import defaultdict, Counter
 from itertools import *
 from functools import *
@@ -24,6 +24,22 @@ lines = open("input-xx-test.txt").read().splitlines()
 #        begin, end = m.span()
 #        value = int(m.group(0))
 
-for line_number, line in enumerate(lines):
-for line in lines:
+def do_part(part):
+    total = 0
+    for line_number, line in enumerate(lines):
+    for line in lines:
+    return total
 
+def main():
+    for part in [1]:
+        before = time.time()
+        answer = do_part(part)
+        after = time.time()
+        elapsed = round((after - before)*1000000)
+        unit = "µs"
+        if elapsed >= 1000:
+            elapsed //= 1000
+            unit = "ms"
+        print(f"Part {part}: {answer} ({elapsed:,} {unit})")
+
+main()
