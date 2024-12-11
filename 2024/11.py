@@ -23,7 +23,7 @@ def go(value, steps):
     return go(value*2024, steps - 1)
 
 def do_part(part):
-    steps = [25, 75][part - 1]
+    steps = [25, 75][part == 2]
     return sum(go(value, steps) for value in INITIAL_VALUES)
 
 def main():
