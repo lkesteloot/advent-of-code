@@ -5,7 +5,7 @@ import numpy as np
 data = open("input-13-test.txt").read()
 data = open("input-13.txt").read()
 
-PART_2_OFFSET = np.array([10000000000000, 10000000000000])
+PART_2_OFFSET = 10000000000000
 
 def is_int(x):
     return abs(x - round(x)) < 0.001
@@ -15,19 +15,16 @@ def do_part(part):
 
     blocks = data.split("\n\n")
     for block in blocks:
-        lines = block.splitlines()
-        ax, ay = re.findall(r"([0-9]+)", lines[0])
-        bx, by = re.findall(r"([0-9]+)", lines[1])
-        cx, cy = re.findall(r"([0-9]+)", lines[2])
+        a, b, p = (re.findall(r"\d+", line) for line in block.strip().splitlines())
 
-        m = np.array([[ax, bx], [ay, by]], dtype=float)
-        p = np.array([cx, cy], dtype=float)
+        m = np.array([a, b], dtype=int).T
+        p = np.array(p, dtype=int)
         if part == 2:
             p += PART_2_OFFSET
 
-        q = np.linalg.solve(m, p)
-        if is_int(q[0]) and is_int(q[1]):
-            total += q[0]*3 + q[1]*1
+        a, b = np.linalg.solve(m, p)
+        if is_int(a) and is_int(b):
+            total += a*3 + b*1
 
     return int(total)
 

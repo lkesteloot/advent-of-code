@@ -3,7 +3,7 @@ import time
 import numpy as np
 
 lines = open("input-12-test.txt").read().splitlines()
-lines = open("input-12.txt").read().splitlines()
+#lines = open("input-12.txt").read().splitlines()
 
 grid = np.array([list(line) for line in lines])
 grid = np.pad(grid, 1, constant_values=".")
@@ -82,10 +82,63 @@ def do_part(part):
 
     return total
 
+def separate_parts(grid):
+    new_grid = np.empty(grid.shape, dtype=int)
+    to_do = {(y,x) for x in range(w) for y in range(h)}
+
+    counter = 0
+    while to_do:
+        p = to_do.pop()
+        ps = flood_fill(p)
+        to_do -= ps
+        for p in ps:
+            new_grid[p] = counter
+        counter += 1
+
+    return new_grid, counter
+
+
+def do_part_x(part):
+    new_grid, counter = separate_parts(grid)
+
+    vert = (new_grid[1:,1:-1] != new_grid[:-1,1:-1]).astype(int)
+    horiz = (new_grid[1:-1,1:] != new_grid[1:-1,:-1]).astype(int)
+
+    new_grid = new_grid[1:-1,1:-1]
+    print(new_grid)
+    #print(vert)
+    #print(horiz)
+    is_top = vert[:-1,:]
+    is_bottom = vert[1:,:]
+    is_left = horiz[:,:-1]
+    is_right = horiz[:,1:]
+    print(is_top)
+    #print(is_right)
+    #print(is_bottom)
+    #print(is_left)
+
+    area_grid = np.empty(new_grid.shape, dtype=int)
+    for i in range(0, counter):
+        where = new_grid == i
+        area_grid[where] = where.sum()
+    #print("Area")
+    #print(area_grid)
+
+    if part == 1:
+        edges = is_top + is_right + is_bottom + is_left
+        #print("Edges")
+        #print(edges)
+    else:
+
+    total = (area_grid*edges).sum()
+
+    return total
+
+
 def main():
-    for part in [1, 2]:
+    for part in [1, 2, 3, 4]:
         before = time.perf_counter()
-        answer = do_part(part)
+        answer = do_part(part) if part <= 2 else do_part_x(part - 2)
         after = time.perf_counter()
         elapsed = round((after - before)*1_000_000)
         unit = "µs"
