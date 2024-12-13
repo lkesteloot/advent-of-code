@@ -3,11 +3,11 @@ import time
 import numpy as np
 
 lines = open("input-12-test.txt").read().splitlines()
-#lines = open("input-12.txt").read().splitlines()
+lines = open("input-12.txt").read().splitlines()
 
-grid = np.array([list(line) for line in lines])
-grid = np.pad(grid, 1, constant_values=".")
-w, h = grid.shape
+GRID = np.array([list(line) for line in lines])
+GRID = np.pad(GRID, 1, constant_values=".")
+w, h = GRID.shape
 
 def neighbors(p):
     y, x = p
@@ -19,14 +19,14 @@ def neighbors(p):
     ]
 
 def flood_fill(p):
-    ch = grid[p]
+    ch = GRID[p]
     ps = set()
     to_do = {p}
 
     while to_do:
         p = to_do.pop()
         y, x = p
-        if 0 <= x < w and 0 <= y < h and grid[p] == ch and p not in ps:
+        if 0 <= x < w and 0 <= y < h and GRID[p] == ch and p not in ps:
             ps.add(p)
             to_do.update(neighbors(p))
 
@@ -69,13 +69,13 @@ def do_part(part):
 
     while to_do:
         p = to_do.pop()
-        ch = grid[p]
+        ch = GRID[p]
         ps = flood_fill(p)
         to_do -= ps
         if ch != ".":
             area = len(ps)
             if part == 1:
-                perimeter = sum(sum(grid[n] != ch for n in neighbors(p)) for p in ps)
+                perimeter = sum(sum(GRID[n] != ch for n in neighbors(p)) for p in ps)
             else:
                 perimeter = count_sides(ps)
             total += area*perimeter
@@ -83,7 +83,7 @@ def do_part(part):
     return total
 
 def separate_parts(grid):
-    new_grid = np.empty(grid.shape, dtype=int)
+    separated_grid = np.empty(grid.shape, dtype=int)
     to_do = {(y,x) for x in range(w) for y in range(h)}
 
     counter = 0
@@ -92,59 +92,64 @@ def separate_parts(grid):
         ps = flood_fill(p)
         to_do -= ps
         for p in ps:
-            new_grid[p] = counter
+            separated_grid[p] = counter
         counter += 1
 
-    return new_grid, counter
+    return separated_grid, counter
 
+def do_part_numpy():
+    grid, counter = separate_parts(GRID)
 
-def do_part_x(part):
-    new_grid, counter = separate_parts(grid)
+    vert = (grid[1:,1:-1] != grid[:-1,1:-1]).astype(int)
+    horiz = (grid[1:-1,1:] != grid[1:-1,:-1]).astype(int)
+    diag_se = (grid[:-1,:-1] == grid[1:,1:]).astype(int)
+    diag_ne = (grid[1:,:-1] == grid[:-1,1:]).astype(int)
 
-    vert = (new_grid[1:,1:-1] != new_grid[:-1,1:-1]).astype(int)
-    horiz = (new_grid[1:-1,1:] != new_grid[1:-1,:-1]).astype(int)
-
-    new_grid = new_grid[1:-1,1:-1]
-    print(new_grid)
-    #print(vert)
-    #print(horiz)
+    grid = grid[1:-1,1:-1]
     is_top = vert[:-1,:]
     is_bottom = vert[1:,:]
     is_left = horiz[:,:-1]
     is_right = horiz[:,1:]
-    print(is_top)
-    #print(is_right)
-    #print(is_bottom)
-    #print(is_left)
+    is_same_se = diag_se[1:,1:]
+    is_same_nw = diag_se[:-1,:-1]
+    is_same_sw = diag_ne[1:,:-1]
+    is_same_ne = diag_ne[:-1,1:]
 
-    area_grid = np.empty(new_grid.shape, dtype=int)
+    area_grid = np.empty(grid.shape, dtype=int)
     for i in range(0, counter):
-        where = new_grid == i
+        where = grid == i
         area_grid[where] = where.sum()
-    #print("Area")
-    #print(area_grid)
 
-    if part == 1:
-        edges = is_top + is_right + is_bottom + is_left
-        #print("Edges")
-        #print(edges)
-    else:
+    perimeter = is_top + is_right + is_bottom + is_left
+    edges = (is_top & is_right) + \
+            (is_top & (1 - is_right) & is_same_ne) + \
+            (is_right & is_bottom) + \
+            (is_right & (1 - is_bottom) & is_same_se) + \
+            (is_bottom & is_left) + \
+            (is_bottom & (1 - is_left) & is_same_sw) + \
+            (is_left & is_top) + \
+            (is_left & (1 - is_top) & is_same_nw)
 
-    total = (area_grid*edges).sum()
+    return (area_grid*perimeter).sum(), (area_grid*edges).sum()
 
-    return total
-
+def elapsed(before, after):
+    elapsed = round((after - before)*1_000_000)
+    unit = "µs"
+    if elapsed >= 1000:
+        elapsed //= 1000
+        unit = "ms"
+    return f"{elapsed:,} {unit}"
 
 def main():
-    for part in [1, 2, 3, 4]:
+    for part in [1, 2]:
         before = time.perf_counter()
-        answer = do_part(part) if part <= 2 else do_part_x(part - 2)
+        answer = do_part(part)
         after = time.perf_counter()
-        elapsed = round((after - before)*1_000_000)
-        unit = "µs"
-        if elapsed >= 1000:
-            elapsed //= 1000
-            unit = "ms"
-        print(f"Part {part}: {answer} ({elapsed:,} {unit})")
+        print(f"Part {part}: {answer} ({elapsed(before, after)})")
+
+    before = time.perf_counter()
+    answer1, answer2 = do_part_numpy()
+    after = time.perf_counter()
+    print(f"Parts 1 and 2: {answer1} {answer2} ({elapsed(before, after)})")
 
 main()

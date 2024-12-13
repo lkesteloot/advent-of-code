@@ -13,12 +13,11 @@ def is_int(x):
 def do_part(part):
     total = 0
 
-    blocks = data.split("\n\n")
-    for block in blocks:
+    for block in data.split("\n\n"):
         a, b, p = (re.findall(r"\d+", line) for line in block.strip().splitlines())
 
-        m = np.array([a, b], dtype=int).T
-        p = np.array(p, dtype=int)
+        m = np.array([a, b], int).T
+        p = np.array(p, int)
         if part == 2:
             p += PART_2_OFFSET
 
