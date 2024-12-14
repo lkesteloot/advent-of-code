@@ -2,37 +2,38 @@
 import re, time
 import numpy as np
 
-lines = open("input-14-test.txt").read().splitlines(); w = 11; h = 7
-lines = open("input-14.txt").read().splitlines(); w = 101; h = 103
+LINES = open("input-14-test.txt").read().splitlines(); W = 11; H = 7
+LINES = open("input-14.txt").read().splitlines(); W = 101; H = 103
 
-ROBOTS = [tuple(map(int, re.findall(r'(-?\d+)', line))) for line in lines]
+X, Y, DX, DY = np.array([tuple(map(int, re.findall(r'(-?\d+)', line))) for line in LINES], int).T
 
 def make_grid(seconds):
-    global ROBOTS
+    global X, Y, DX, DY
 
-    grid = np.zeros((h, w), dtype=int)
-    for x, y, dx, dy in ROBOTS:
-        x = (x + dx*seconds) % w
-        y = (y + dy*seconds) % h
-        grid[y,x] += 1
+    x = (X + DX*seconds) % W
+    y = (Y + DY*seconds) % H
+
+    grid = np.zeros((H, W), dtype=int)
+    np.add.at(grid, (y,x), 1)
+
     return grid
 
 def print_grid(grid):
     for row in grid:
-        print("".join("." if tile == 0 else chr(tile + 0x30) for tile in row))
+        print("".join("." if tile == 0 else str(tile) for tile in row))
 
 def do_part(part):
     if part == 1:
         grid = make_grid(100)
-        return grid[:h//2,:w//2].sum() * \
-                grid[h//2+1:,:w//2].sum() * \
-                grid[:h//2:,w//2+1:].sum() * \
-                grid[h//2+1:,w//2+1:].sum()
+        return grid[:H//2,:W//2].sum() * \
+                grid[H//2+1:,:W//2].sum() * \
+                grid[:H//2:,W//2+1:].sum() * \
+                grid[H//2+1:,W//2+1:].sum()
     else:
         best_seconds = None
         best_same = None
         best_grid = None
-        for seconds in range(w*h):
+        for seconds in range(W*H):
             grid = make_grid(seconds)
             same = (grid[:-1,:] == grid[1:,:]).sum() + \
                     (grid[:,:-1] == grid[:,1:]).sum()
