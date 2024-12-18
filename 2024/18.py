@@ -33,11 +33,6 @@ def d(a, b):
 # A* finds a path from start to goal.
 # h is the heuristic function. h(n) estimates the cost to reach goal from node n.
 def a_star(start, goal, h, steps, want_path):
-    # The set of discovered nodes that may need to be (re-)expanded.
-    # Initially, only the start node is known.
-    # This is usually implemented as a min-heap or priority queue rather than a hash-set.
-    openSet = {start}
-
     # For node n, cameFrom[n] is the node immediately preceding it on the cheapest path from the start
     # to n currently known.
     cameFrom = {}
@@ -51,13 +46,23 @@ def a_star(start, goal, h, steps, want_path):
     fScore = defaultdict(lambda: 99999999999)
     fScore[start] = h(start)
 
+    # The set of discovered nodes that may need to be (re-)expanded.
+    # Initially, only the start node is known.
+    # This is usually implemented as a min-heap or priority queue rather than a hash-set.
+    openSet = []
+    heapq.heappush(openSet, (fScore[start], start))
+
+    processed = set()
+
     while openSet:
-        # This operation can occur in O(Log(N)) time if openSet is a min-heap or a priority queue
-        current = min( (fScore[n], n) for n in openSet)[1]
+        _, current = heapq.heappop(openSet)
         if current == goal:
             return reconstruct_path(cameFrom, current) if want_path else True
 
-        openSet.remove(current)
+        if current in processed:
+            continue
+        processed.add(current)
+
         for neighbor in neighbors_of(current, steps):
             # d(current,neighbor) is the weight of the edge from current to neighbor
             # tentative_gScore is the distance from start to the neighbor through current
@@ -67,8 +72,7 @@ def a_star(start, goal, h, steps, want_path):
                 cameFrom[neighbor] = current
                 gScore[neighbor] = tentative_gScore
                 fScore[neighbor] = tentative_gScore + h(neighbor)
-                if neighbor not in openSet:
-                    openSet.add(neighbor)
+                heapq.heappush(openSet, (fScore[neighbor], neighbor))
 
     # Open set is empty but goal was never reached
     return None if want_path else False
