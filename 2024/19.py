@@ -1,5 +1,6 @@
 
 import time
+from collections import defaultdict
 from functools import *
 
 data = open("input-19-test.txt").read()
@@ -8,6 +9,9 @@ data = open("input-19.txt").read()
 available, wanted = data.split("\n\n")
 available = available.split(", ")
 wanted = wanted.splitlines()
+by_first_letter = defaultdict(list)
+for a in available:
+    by_first_letter[a[0]].append(a)
 
 @cache
 def how_many_ways_possible(w):
@@ -15,7 +19,7 @@ def how_many_ways_possible(w):
         return 1
 
     return sum(how_many_ways_possible(w[len(a):])
-               for a in available
+               for a in by_first_letter[w[0]]
                if w.startswith(a))
 
 def do_part(part):
