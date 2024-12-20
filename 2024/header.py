@@ -25,6 +25,10 @@ lines = open("input-xx-test.txt").read().splitlines()
 #        begin, end = m.span()
 #        value = int(m.group(0))
 
+def print_grid(grid):
+    for row in grid:
+        print("".join(str(tile) for tile in row))
+
 def do_part(part):
     total = 0
     for line_number, line in enumerate(lines):

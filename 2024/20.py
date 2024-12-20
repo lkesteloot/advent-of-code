@@ -1,6 +1,5 @@
 
 import time
-from collections import Counter
 import numpy as np
 
 lines = open("input-20-test.txt").read().splitlines()
@@ -17,13 +16,6 @@ INF = GRID.shape[0] * GRID.shape[1]
 
 def add(p, d):
     return p[0] + d[0], p[1] + d[1]
-
-def manhattan(p1, p2):
-    return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
-
-def print_grid(grid):
-    for row in grid:
-        print("".join(str(tile) for tile in row))
 
 def do_part(part):
     cheat_distance = 2 if part == 1 else 20
@@ -49,30 +41,17 @@ def do_part(part):
 
     default_distance = distance[END]
 
-    def determine_saved(p1, p2):
-        return abs(distance[p1] - distance[p2]) - manhattan(p1, p2)
-
-    saved_counter = Counter()
-
     total = 0
     for y in range(1, H - 1):
         for x in range(1, W - 1):
             p = y, x
             for dy in range(0, cheat_distance + 1):
-                for dx in range(-cheat_distance if dy > 0 else 0, cheat_distance + 1):
-                    if abs(dx) + abs(dy) <= cheat_distance:
-                        op = add(p, (dy, dx))
-                        if 0 <= op[0] < H and 0 <= op[1] < W:
-                            if GRID[p] == "." and GRID[op] == ".":
-                                saved = determine_saved(p, op)
-                                saved_counter[saved] += 1
-                                if saved >= 100:
-                                    total += 1
-
-    if False:
-        print(saved_counter)
-        for saved in sorted(saved_counter.keys()):
-            print(saved_counter[saved], "cheats that save", saved)
+                for dx in range(-cheat_distance + dy if dy > 0 else 0, cheat_distance + 1 - dy):
+                    op = add(p, (dy, dx))
+                    if 0 <= op[0] < H and 0 <= op[1] < W and distance[p] < INF and distance[op] < INF:
+                        saved = abs(distance[p] - distance[op]) - (abs(dy) + abs(dx))
+                        if saved >= 100:
+                            total += 1
 
     # it's 1033983
     return total
