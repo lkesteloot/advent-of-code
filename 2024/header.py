@@ -25,6 +25,9 @@ lines = open("input-xx-test.txt").read().splitlines()
 #        begin, end = m.span()
 #        value = int(m.group(0))
 
+def add(p, d):
+    return p[0] + d[0], p[1] + d[1]
+
 def print_grid(grid):
     for row in grid:
         print("".join(str(tile) for tile in row))
