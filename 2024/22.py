@@ -36,11 +36,11 @@ def do_part(part):
         width = diff.shape[1]
 
         base = 9*2 + 1
-        combos = np.zeros(base**4, dtype=int)
+        num_combos = base**4
+        combos = np.zeros(num_combos, dtype=int)
         coef = base ** np.arange(4)
 
-        # key is (row,combo)
-        seen = set()
+        seen = np.zeros( (count, num_combos), dtype=bool)
 
         for i in range(width - 3):
             index = diff[:,i:i+4] * coef
@@ -48,10 +48,9 @@ def do_part(part):
 
             for row in range(count):
                 combo = index[row]
-                key = row, combo
-                if key not in seen:
+                if not seen[row,combo]:
                     combos[combo] += ones_digit[row,i+4]
-                    seen.add(key)
+                    seen[row,combo] = True
 
         return np.max(combos)
 
