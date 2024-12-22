@@ -24,6 +24,9 @@ class Dijkstra:
     def go(self):
         while True:
             while True:
+                if not self.left_to_visit:
+                    raise Exception("no path to end node")
+
                 value, node = heapq.heappop(self.left_to_visit)
                 if node not in self.visited_nodes:
                     break
