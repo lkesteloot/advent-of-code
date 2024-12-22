@@ -22,7 +22,7 @@ def get_next_secret(secret):
 
 def do_part(part):
     count = len(lines)
-    secret = np.empty( (count, 2001), dtype=int)
+    secret = np.empty((count, 2001), dtype=int)
     secret[:,0] = INITIAL
     for i in range(2000):
         secret[:,i+1] = get_next_secret(secret[:,i])
@@ -40,17 +40,14 @@ def do_part(part):
         combos = np.zeros(num_combos, dtype=int)
         coef = base ** np.arange(4)
 
-        seen = np.zeros( (count, num_combos), dtype=bool)
+        first = np.full((count, num_combos), True)
+        row_indices = np.arange(count)
 
         for i in range(width - 3):
             index = diff[:,i:i+4] * coef
             index = index.sum(axis=-1)
-
-            for row in range(count):
-                combo = index[row]
-                if not seen[row,combo]:
-                    combos[combo] += ones_digit[row,i+4]
-                    seen[row,combo] = True
+            np.add.at(combos, index, ones_digit[:,i+4]*first[row_indices, index])
+            first[row_indices, index] = False
 
         return np.max(combos)
 
