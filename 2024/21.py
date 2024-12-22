@@ -44,7 +44,7 @@ class Dijkstra:
         # Map from node to list of previous nodes.
         self.back = {}
 
-    # Returns (cost, path, end node).
+    # Returns (cost, end node).
     def go(self):
         while True:
             while True:
@@ -56,18 +56,17 @@ class Dijkstra:
                     break
 
             if self.is_end_node(node):
-                return self.cost_to_start[node], self._make_path(node), node
+                return self.cost_to_start[node], node
 
             cost_to_us = self.cost_to_start[node]
-            for neighbor, keys_from_us_to_neighbor in self.get_neighbors(node):
+            for neighbor, cost_from_us_to_neighbor in self.get_neighbors(node):
                 if not neighbor in self.visited_nodes:
-                    cost_from_us_to_neighbor = len(keys_from_us_to_neighbor)
                     cost_to_neighbor = self.cost_to_start.get(neighbor)
                     cost_to_neighbor_through_us = cost_to_us + cost_from_us_to_neighbor
                     if cost_to_neighbor == None or cost_to_neighbor_through_us < cost_to_neighbor:
                         self.cost_to_start[neighbor] = cost_to_neighbor_through_us
                         heapq.heappush(self.left_to_visit, (cost_to_neighbor_through_us, neighbor))
-                        self.back[neighbor] = node, keys_from_us_to_neighbor
+                        self.back[neighbor] = node, None
 
     def _make_path(self, end_node):
         all_keys = []
@@ -158,12 +157,12 @@ def find_cost_of_code(target_code, directional_keypad_robot_count):
 # start and end are keys on current keypad. keypads_below are
 # the number of keypads below it. assumes that all keypads
 # below it start and end with all "A".
-# returns sequence of lowest keys.
+# returns number of lowest keys.
 @cache
 def find_best_keys_to_push_button(start, end, keypads_above, keypads_below):
     if keypads_below == 0:
         # Can just press the key.
-        return end
+        return 1
 
     keypad_neighbors = NUMERIC_NEIGHBORS if keypads_above == 0 else DIRECTIONAL_NEIGHBORS
 
@@ -173,13 +172,13 @@ def find_best_keys_to_push_button(start, end, keypads_above, keypads_below):
         for d, new_our_key in enumerate(keypad_neighbors[our_key]):
             if new_our_key is not None:
                 new_sub_key = DIRECTION_TO_KEY[d]
-                keys = find_best_keys_to_push_button(sub_key, new_sub_key, keypads_above + 1, keypads_below - 1)
-                neighbors.append( ((new_our_key, new_sub_key), keys) )
+                cost = find_best_keys_to_push_button(sub_key, new_sub_key, keypads_above + 1, keypads_below - 1)
+                neighbors.append( ((new_our_key, new_sub_key), cost) )
 
         # Also figure out how to press current key.
         new_sub_key = "A"
-        keys = find_best_keys_to_push_button(sub_key, new_sub_key, keypads_above + 1, keypads_below - 1)
-        neighbors.append( ((our_key, new_sub_key), keys) )
+        cost = find_best_keys_to_push_button(sub_key, new_sub_key, keypads_above + 1, keypads_below - 1)
+        neighbors.append( ((our_key, new_sub_key), cost) )
 
         return neighbors
 
@@ -188,12 +187,10 @@ def find_best_keys_to_push_button(start, end, keypads_above, keypads_below):
                  lambda state: state == (end, "A"),
                  get_neighbors,
                  None)
-    cost, keys, end_state = d.go()
-    if keys == "":
-        keys = "A"
-    #keys += "A" # find_best_keys_to_push_button(end_state[1], "A", keypads_above + 1, keypads_below - 1)
-    #print("    "*keypads_above, cost, keys)
-    return keys
+    cost, end_state = d.go()
+    if cost == 0:
+        cost = 1
+    return cost
 
 def simulate(keys, keypads_above, numeric_start="A"):
     print("    ", keys)
