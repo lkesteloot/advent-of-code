@@ -31,8 +31,7 @@ def do_part(part):
         return secret[:,-1].sum()
     else:
         ones_digit = secret % 10
-        diff = ones_digit[:,1:] - ones_digit[:,:-1]
-        diff += 9
+        diff = np.diff(ones_digit) + 9
         width = diff.shape[1]
 
         base = 9*2 + 1
