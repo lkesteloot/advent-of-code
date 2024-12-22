@@ -1,31 +1,10 @@
 
-
-# mv ~/Downloads/input.txt input-22.txt
-
-import sys, re, time
-from collections import defaultdict, Counter
-from itertools import *
-from functools import *
-# https://more-itertools.readthedocs.io/en/stable/
-from more_itertools import *
+import time
 import numpy as np
-# import scipy.signal
 
 lines = open("input-22-test.txt").read().splitlines()
 lines = open("input-22-test-2.txt").read().splitlines()
-#lines = open("input-22.txt").read().splitlines()
-# width = len(lines[0])
-# height = len(lines)
-# matrix = [list(map(int, list(line))) for line in lines]
-# name, flow, *neighbors = re.findall(r'([A-Z][A-Z]|[0-9]+)', line)
-# grid = np.array([list(line) for line in lines])
-# grid = np.pad(grid, 1, constant_values=-1)
-# yxs = (yx for yx, ch in np.ndenumerate(grid) if is_symbol(ch))
-# tiles = {(x, y): lines[y][x] for y in range(height) for x in range(width)}
-# rolls = {(x, y) for y in range(height) for x in range(width) if lines[y][x] == "O"}
-#    for m in re.finditer(r"[0-9]+", line):
-#        begin, end = m.span()
-#        value = int(m.group(0))
+lines = open("input-22.txt").read().splitlines()
 
 INITIAL = np.array(lines, int)
 
@@ -53,38 +32,28 @@ def do_part(part):
     else:
         ones_digit = secret % 10
         diff = ones_digit[:,1:] - ones_digit[:,:-1]
+        diff += 9
         width = diff.shape[1]
 
-        # key is (row,a,b), value is list of indices of diff.
-        prefix = defaultdict(list)
-        for row in range(count):
-            for i in range(width - 3):
-                a = diff[row,i]
-                b = diff[row,i+1]
-                c = diff[row,i+2]
-                d = diff[row,i+3]
-                prefix[(row,a,b,c,d)].append(i)
-        print(len(prefix))
+        base = 9*2 + 1
+        combos = np.zeros(base**4, dtype=int)
+        coef = base ** np.arange(4)
 
-        best_tuple = None
-        best_total = 0
-        for a in range(-9, 10):
-            print(a)
-            for b in range(-9, 10):
-                for c in range(-9, 10):
-                    for d in range(-9, 10):
-                        total = 0
-                        for row in range(count):
-                            for i in prefix[(row, a, b, c, d)]:
-                                total += ones_digit[row,i+3+1]
-                                break
-                        if total > best_total:
-                            best_total = total
-                            best_tuple = a, b, c, d
-                            print(best_total, best_tuple)
+        # key is (row,combo)
+        seen = set()
 
-        # not 2261
-        return best_total
+        for i in range(width - 3):
+            index = diff[:,i:i+4] * coef
+            index = index.sum(axis=-1)
+
+            for row in range(count):
+                combo = index[row]
+                key = row, combo
+                if key not in seen:
+                    combos[combo] += ones_digit[row,i+4]
+                    seen.add(key)
+
+        return np.max(combos)
 
 def main():
     for part in [1, 2]:
