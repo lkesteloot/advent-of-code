@@ -5,16 +5,15 @@ from collections import defaultdict
 lines = open("input-23-test.txt").read().splitlines()
 lines = open("input-23.txt").read().splitlines()
 
-CONNECTIONS = [line.split("-") for line in lines]
 NEIGHBORS = defaultdict(set)
-for a, b in CONNECTIONS:
+for a, b in (line.split("-") for line in lines):
     NEIGHBORS[a].add(b)
     NEIGHBORS[b].add(a)
 
 # Bron-Kerbosch algorithm with pivot.
 def find_all_cliques(P, R=set(), X=set()):
     if not P and not X:
-        yield ",".join(sorted(R))
+        yield tuple(sorted(R))
     else:
         u = (P | X).pop()
         for v in P - NEIGHBORS[u]:
@@ -24,18 +23,16 @@ def find_all_cliques(P, R=set(), X=set()):
 
 def do_part(part):
     if part == 1:
-        sets3 = set()
-        for a in NEIGHBORS:
-            for b in NEIGHBORS[a]:
-                for c in NEIGHBORS[a] & NEIGHBORS[b]:
-                    if a.startswith("t") or b.startswith("t") or c.startswith("t"):
-                        sets3.add(",".join(sorted([a,b,c])))
-
-        return len(sets3)
+        return sum(a.startswith("t") or b.startswith("t") or c.startswith("t")
+                   for a in NEIGHBORS
+                   for b in NEIGHBORS[a]
+                   if b > a
+                   for c in NEIGHBORS[a]
+                   if c > b and c in NEIGHBORS[b])
     else:
-        _, best_clique = max((len(clique), clique)
-                             for clique in find_all_cliques(NEIGHBORS.keys()))
-        return best_clique
+        _, largest_clique = max((len(clique), clique)
+                                for clique in find_all_cliques(NEIGHBORS.keys()))
+        return ",".join(largest_clique)
 
 def main():
     for part in [1, 2]:
