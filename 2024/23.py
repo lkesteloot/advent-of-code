@@ -11,12 +11,13 @@ for a, b in CONNECTIONS:
     NEIGHBORS[a].add(b)
     NEIGHBORS[b].add(a)
 
-# Bron-Kerbosch algorithm.
+# Bron-Kerbosch algorithm with pivot.
 def find_all_cliques(P, R=set(), X=set()):
     if not P and not X:
         yield ",".join(sorted(R))
     else:
-        for v in P:
+        u = (P | X).pop()
+        for v in P - NEIGHBORS[u]:
             yield from find_all_cliques(P & NEIGHBORS[v], R | {v}, X & NEIGHBORS[v])
             P = P - {v}
             X = X | {v}
