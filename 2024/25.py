@@ -18,10 +18,17 @@ for section in data.split("\n\n"):
 def do_part(part):
     total = 0
     if part == 1:
-        for lock in LOCKS:
-            for key in KEYS:
-                if np.all(lock + key <= 5):
-                    total += 1
+        # locks_min[tumbler][at_or_less] = set(indices)
+        locks_min = list(list(set(i
+                                  for i, lock in enumerate(LOCKS)
+                                  if lock[tumbler] <= height)
+                              for height in range(6))
+                         for tumbler in range(5))
+        for key in KEYS:
+            sets = [locks_min[tumbler][5 - key[tumbler]] for tumbler in range(5)]
+            locks = set.intersection(*sets)
+            total += len(locks)
+
     return total
 
 def main():
