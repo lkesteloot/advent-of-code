@@ -1,31 +1,11 @@
 
 import time
+from intcode import run, parse_mem
 
 data = open("input-2-test.txt").read()
 data = open("input-2.txt").read()
 
-MEM = list(map(int, data.split(",")))
-
-def run(mem):
-    pc = 0
-
-    def fetch():
-        nonlocal pc
-        value = mem[pc]
-        pc += 1
-        return value
-
-    while (opcode := fetch()) != 99:
-        if opcode == 1:
-            op1 = mem[fetch()]
-            op2 = mem[fetch()]
-            mem[fetch()] = op1 + op2
-        elif opcode == 2:
-            op1 = mem[fetch()]
-            op2 = mem[fetch()]
-            mem[fetch()] = op1 * op2
-        else:
-            raise Exception()
+MEM = parse_mem(data)
 
 def do_part(part):
     global MEM

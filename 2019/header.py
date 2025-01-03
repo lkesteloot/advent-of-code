@@ -9,9 +9,10 @@ from functools import *
 from more_itertools import *
 import numpy as np
 # import scipy.signal
+from intcode import run, parse_mem
 
-lines = open("input-xx-test.txt").read().splitlines()
-#lines = open("input-xx.txt").read().splitlines()
+data = open("input-xx-test.txt").read()
+#data = open("input-xx.txt").read()
 # width = len(lines[0])
 # height = len(lines)
 # matrix = [list(map(int, list(line))) for line in lines]
@@ -24,6 +25,8 @@ lines = open("input-xx-test.txt").read().splitlines()
 #    for m in re.finditer(r"[0-9]+", line):
 #        begin, end = m.span()
 #        value = int(m.group(0))
+
+MEM = parse_mem(data)
 
 def add(p, d):
     return p[0] + d[0], p[1] + d[1]
