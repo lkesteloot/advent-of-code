@@ -1,6 +1,6 @@
 
 import time
-from intcode import run, parse_mem
+from intcode import Intcode, parse_mem
 
 data = open("input-2-test.txt").read()
 data = open("input-2.txt").read()
@@ -14,16 +14,18 @@ def do_part(part):
         mem = MEM[:]
         mem[1] = 12
         mem[2] = 2
-        run(mem)
-        return mem[0]
+        machine = Intcode(mem)
+        machine.run()
+        return machine.mem[0]
     else:
         for noun in range(100):
             for verb in range(100):
                 mem = MEM[:]
                 mem[1] = noun
                 mem[2] = verb
-                run(mem)
-                if mem[0] == 19690720:
+                machine = Intcode(mem)
+                machine.run()
+                if machine.mem[0] == 19690720:
                     return 100*noun + verb
 
 def main():
