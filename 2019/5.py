@@ -1,6 +1,6 @@
 
 import time
-from intcode import run, parse_mem
+from intcode import run_with_io, parse_mem
 
 data = open("input-5.txt").read()
 
@@ -10,8 +10,7 @@ def do_part(part):
     system_id = 1 if part == 1 else 5
     mem = MEM[:]
 
-    outputs = []
-    run(mem, input_fn=lambda: system_id, output_fn=outputs.append)
+    outputs = run_with_io(mem, [system_id])
 
     if any(outputs[:-1]):
         print("Diagnostics failed", outputs)

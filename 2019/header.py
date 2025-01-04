@@ -9,7 +9,7 @@ from functools import *
 from more_itertools import *
 import numpy as np
 # import scipy.signal
-from intcode import run, parse_mem
+from intcode import run, run_with_io, parse_mem
 
 data = open("input-xx-test.txt").read()
 #data = open("input-xx.txt").read()

@@ -85,6 +85,14 @@ def run(mem, input_fn=None, output_fn=None):
         else:
             raise Exception(f"Unknown opcode {opcode}")
 
+def run_with_io(mem, inputs):
+    inputs = inputs[:]
+    outputs = []
+
+    run(mem, input_fn=lambda: inputs.pop(0), output_fn=outputs.append)
+
+    return outputs
+
 if __name__ == "__main__":
     data = "3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9"
     mem = parse_mem(data)
