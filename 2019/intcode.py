@@ -16,8 +16,7 @@ class Intcode:
             print("---", self.pc, self.mem)
 
         opcode_slot = self.fetch()
-        opcode = opcode_slot % 100
-        modes = opcode_slot // 100
+        modes, opcode = divmod(opcode_slot, 100)
 
         def get_parameter_address():
             nonlocal modes
