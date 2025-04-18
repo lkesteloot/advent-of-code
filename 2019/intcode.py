@@ -128,7 +128,7 @@ class Intcode:
 class IntcodeLists(Intcode):
     def __init__(self, mem, inputs):
         super().__init__(mem)
-        self.inputs = inputs[:]
+        self.inputs = list(inputs)
         self.outputs = []
 
     def input(self):
