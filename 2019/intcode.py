@@ -1,6 +1,19 @@
 
 TRON = False
 
+OPCODE_NAMES = {
+    1: "Add",
+    2: "Multiply",
+    3: "Input",
+    4: "Output",
+    5: "Jump if true",
+    6: "Jump if false",
+    7: "Less than",
+    8: "Equals",
+    9: "Adjust relative base",
+    99: "Halt",
+}
+
 def parse_mem(data):
     return list(map(int, data.split(",")))
 
@@ -13,10 +26,12 @@ class Intcode:
 
     def step(self):
         if TRON:
-            print("---", self.pc, self.mem)
+            print(f"--- PC = {self.pc}")
 
         opcode_slot = self.fetch()
         modes, opcode = divmod(opcode_slot, 100)
+        if TRON:
+            print("TRON: Opcode is " + OPCODE_NAMES[opcode] + ", mode is " + str(modes))
 
         def get_parameter_address():
             nonlocal modes
@@ -123,6 +138,8 @@ class Intcode:
         return self.mem.get(address, 0)
 
     def write_memory(self, address, value):
+        if TRON:
+            print(f"TRON: writing {value} to address {address}")
         self.mem[address] = value
 
 class IntcodeLists(Intcode):
