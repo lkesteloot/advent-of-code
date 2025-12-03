@@ -1,5 +1,4 @@
 import java.io.File
-import kotlin.time.measureTime
 import kotlin.time.measureTimedValue
 
 fun day1(lines: List<String>, part: Int): Long {
@@ -7,7 +6,7 @@ fun day1(lines: List<String>, part: Int): Long {
     var count = 0L
     for (line in lines) {
         val direction = line[0]
-        val distance = line.substring(1).toInt()
+        val distance = line.drop(1).toInt()
         val step = if (direction == 'R') 1 else -1
 
         if (part == 1) {
@@ -36,7 +35,7 @@ fun day2(lines: List<String>, part: Int): Long {
     fun tryRange(first: String, last: String) {
         assert(first.length == last.length)
         if (part == 1 && first.length % 2 != 0) {
-            return;
+            return
         }
         val firstValue = first.toLong()
         val lastValue = last.toLong()
@@ -48,10 +47,10 @@ fun day2(lines: List<String>, part: Int): Long {
             while (true) {
                 val id = counter.toString().repeat(repeat).toLong()
                 if (id > lastValue) {
-                    break;
+                    break
                 }
                 if (id >= firstValue && !invalidIds.contains(id)) {
-                    invalidIds.add(id);
+                    invalidIds.add(id)
                     result += id
                 }
                 counter += 1
@@ -74,10 +73,34 @@ fun day2(lines: List<String>, part: Int): Long {
     return result
 }
 
+fun day3(lines: List<String>, part: Int): Long {
+    var result = 0L
+    val batteryCount = if (part == 1) 2 else 12
+
+    for (line in lines) {
+        var joltage = 0L
+        var batteries = line
+
+        repeat (batteryCount) { batteryIndex ->
+            val digitsAfterThis = batteryCount - batteryIndex - 1
+            val digit = batteries.take(batteries.length - digitsAfterThis).max()
+            val digitIndex = batteries.indexOf(digit)
+            batteries = batteries.drop(digitIndex + 1)
+            joltage = joltage*10 + (digit - '0')
+        }
+
+        result += joltage
+    }
+
+    return result
+}
+
 fun main() {
-    arrayOf(::day1, ::day2).forEachIndexed { index, dayFunction ->
+    val testDay = -1 // or -1 to disable
+    arrayOf(::day1, ::day2, ::day3).forEachIndexed { index, dayFunction ->
         val day = index + 1
-        val lines = File("day$day.txt").readLines()
+        val filename = if (day == testDay) "day$day-test.txt" else "day$day.txt"
+        val lines = File(filename).readLines()
         for (part in 1..2) {
             val (result, timeTaken) = measureTimedValue {
                 dayFunction(lines, part)
