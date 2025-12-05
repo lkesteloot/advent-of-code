@@ -1,6 +1,12 @@
 import java.io.File
 import kotlin.time.measureTimedValue
 
+fun myAssert(assertion: Boolean) {
+    if (!assertion) {
+        throw AssertionError()
+    }
+}
+
 fun day1(lines: List<String>, part: Int): Long {
     var pos = 50
     var count = 0L
@@ -95,9 +101,76 @@ fun day3(lines: List<String>, part: Int): Long {
     return result
 }
 
+fun day4(lines: List<String>, part: Int): Long {
+    var result = 0L
+
+    val rows = lines.size
+    val cols = lines[0].length
+    val rowRange = 0 until rows
+    val colRange = 0 until cols
+    val accessibleRange = 0..3
+
+    data class Pos(val row: Int, val col: Int) {
+        fun hasRoll() =
+            row in rowRange && col in colRange && lines[row][col] == '@'
+
+        fun neighbors() = listOf(
+            Pos(row - 1, col - 1),
+            Pos(row, col - 1),
+            Pos(row + 1, col - 1),
+            Pos(row - 1, col),
+            Pos(row + 1, col),
+            Pos(row - 1, col + 1),
+            Pos(row, col + 1),
+            Pos(row + 1, col + 1)
+        )
+    }
+
+    val posToNeighbors = mutableMapOf<Pos, MutableSet<Pos>>()
+    val accessiblePositions = mutableSetOf<Pos>()
+
+    for (row in rowRange) {
+        for (col in colRange) {
+            val pos = Pos(row, col)
+            if (pos.hasRoll()) {
+                val neighbors = pos.neighbors()
+                    .filter(Pos::hasRoll)
+                    .toMutableSet()
+                posToNeighbors[pos] = neighbors
+                if (neighbors.size in accessibleRange) {
+                    accessiblePositions.add(pos)
+                }
+            }
+        }
+    }
+
+    when (part) {
+        1 -> result = accessiblePositions.size.toLong()
+        2 -> {
+            while (!accessiblePositions.isEmpty()) {
+                val toProcess = accessiblePositions.toSet()
+                accessiblePositions.clear()
+                toProcess.forEach { posToRemove ->
+                    posToNeighbors.getValue(posToRemove).forEach { neighbor ->
+                        val neighborNeighbors = posToNeighbors.getValue(neighbor)
+                        myAssert(neighborNeighbors.remove(posToRemove))
+                        if (neighborNeighbors.size in accessibleRange && neighbor !in toProcess) {
+                            accessiblePositions.add(neighbor)
+                        }
+                    }
+                    posToNeighbors.remove(posToRemove)
+                    result += 1
+                }
+            }
+        }
+    }
+
+    return result
+}
+
 fun main() {
     val testDay = -1 // or -1 to disable
-    arrayOf(::day1, ::day2, ::day3).forEachIndexed { index, dayFunction ->
+    arrayOf(::day1, ::day2, ::day3, ::day4).forEachIndexed { index, dayFunction ->
         val day = index + 1
         val filename = if (day == testDay) "day$day-test.txt" else "day$day.txt"
         val lines = File(filename).readLines()
