@@ -1,4 +1,5 @@
 import java.io.File
+import kotlin.math.max
 import kotlin.time.measureTimedValue
 
 fun myAssert(assertion: Boolean) {
@@ -168,9 +169,45 @@ fun day4(lines: List<String>, part: Int): Long {
     return result
 }
 
+fun day5(lines: List<String>, part: Int): Long {
+    var result = 0L
+
+    val blankIndex = lines.indexOf("")
+    val freshRanges = lines.take(blankIndex)
+        .map { line ->
+            val (low, high) = line.split('-').map { it.toLong() }
+            low..high
+        }
+
+    when (part) {
+        1 -> {
+            result = lines.drop(blankIndex + 1)
+                .map { it.toLong() }
+                .count { id -> freshRanges.any { range -> range.contains(id) } }
+                .toLong()
+        }
+
+        2 -> {
+            // Sort our ranges.
+            val ranges = freshRanges.sortedBy { it.first }.toMutableList()
+            for (i in ranges.indices) {
+                val current = ranges[i]
+                val next = ranges.getOrNull(i + 1)
+                if (next == null || current.last < next.first) {
+                    result += current.last - current.first + 1
+                } else {
+                    ranges[i + 1] = current.first..max(current.last,next.last)
+                }
+            }
+        }
+    }
+
+    return result
+}
+
 fun main() {
     val testDay = -1 // or -1 to disable
-    arrayOf(::day1, ::day2, ::day3, ::day4).forEachIndexed { index, dayFunction ->
+    arrayOf(::day1, ::day2, ::day3, ::day4, ::day5).forEachIndexed { index, dayFunction ->
         val day = index + 1
         val filename = if (day == testDay) "day$day-test.txt" else "day$day.txt"
         val lines = File(filename).readLines()
