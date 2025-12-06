@@ -217,9 +217,75 @@ fun day5(lines: List<String>, part: Int): Long {
     return result
 }
 
+fun day6(lines: List<String>, part: Int): Long {
+    var result = 0L
+
+    when (part) {
+        1 -> {
+            val spaces = " +".toRegex()
+            val numbers = lines.take(lines.size - 1).map { it.trim().split(spaces).map { it.toLong() } }
+            val ops = lines[lines.size - 1].trim().split(spaces)
+            val problemCount = numbers[0].size
+
+            result = (0 until problemCount).sumOf { index ->
+                when (ops[index]) {
+                    "+" -> numbers.sumOf { line -> line[index] }
+                    "*" -> numbers.fold(1L) { product, line -> product * line[index] }
+                    else -> throw Error()
+                }
+            }
+        }
+
+        2 -> {
+            val columnCount = lines[0].length
+            myAssert(lines.all { it.length == columnCount })
+            val rowCount = lines.size - 1
+            val ops = lines[lines.size - 1]
+            var subResult = 0L
+            var op = ' '
+            for (i in 0 until columnCount) {
+                if (ops[i] != ' ') {
+                    myAssert(op == ' ')
+                    op = ops[i]
+                    subResult = when (op) {
+                        '+' -> 0
+                        '*' -> 1
+                        else -> throw Error()
+                    }
+                }
+                var value = 0
+                var foundAny = false
+                for (j in 0 until rowCount) {
+                    val ch = lines[j][i]
+                    if (ch != ' ') {
+                        value = value * 10 + ch.digitToInt()
+                        foundAny = true
+                    }
+                }
+                if (foundAny) {
+                    when (op) {
+                        '+' -> subResult += value
+                        '*' -> subResult *= value
+                        else -> throw Error()
+                    }
+                } else {
+                    // Blank column.
+                    myAssert(ops[i] == ' ')
+                    result += subResult
+                    subResult = 0
+                    op = ' '
+                }
+            }
+            result += subResult
+        }
+    }
+
+    return result
+}
+
 fun main() {
-    val testDay = -1 // or -1 to disable
-    arrayOf(::day1, ::day2, ::day3, ::day4, ::day5).forEachIndexed { index, dayFunction ->
+    val testDay = -6 // or -1 to disable
+    arrayOf(::day1, ::day2, ::day3, ::day4, ::day5, ::day6).forEachIndexed { index, dayFunction ->
         val day = index + 1
         val filename = if (day == testDay) "day$day-test.txt" else "day$day.txt"
         val lines = File(filename).readLines()
