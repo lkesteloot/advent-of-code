@@ -241,42 +241,23 @@ fun day6(lines: List<String>, part: Int): Long {
             myAssert(lines.all { it.length == columnCount })
             val rowCount = lines.size - 1
             val ops = lines[lines.size - 1]
-            var subResult = 0L
-            var op = ' '
-            for (i in 0 until columnCount) {
+            val numbers = mutableListOf<Long>()
+            for (i in columnCount - 1 downTo 0) {
+                val s = (0 until rowCount)
+                    .joinToString("") { j -> lines[j][i].toString() }
+                    .trim()
+                if (!s.isEmpty()) {
+                    numbers.add(s.toLong())
+                }
                 if (ops[i] != ' ') {
-                    myAssert(op == ' ')
-                    op = ops[i]
-                    subResult = when (op) {
-                        '+' -> 0
-                        '*' -> 1
+                    result += when (ops[i]) {
+                        '+' -> numbers.sum()
+                        '*' -> numbers.reduce(Long::times)
                         else -> throw Error()
                     }
-                }
-                var value = 0
-                var foundAny = false
-                for (j in 0 until rowCount) {
-                    val ch = lines[j][i]
-                    if (ch != ' ') {
-                        value = value * 10 + ch.digitToInt()
-                        foundAny = true
-                    }
-                }
-                if (foundAny) {
-                    when (op) {
-                        '+' -> subResult += value
-                        '*' -> subResult *= value
-                        else -> throw Error()
-                    }
-                } else {
-                    // Blank column.
-                    myAssert(ops[i] == ' ')
-                    result += subResult
-                    subResult = 0
-                    op = ' '
+                    numbers.clear()
                 }
             }
-            result += subResult
         }
     }
 
