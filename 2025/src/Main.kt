@@ -172,34 +172,46 @@ fun day4(lines: List<String>, part: Int): Long {
 fun day5(lines: List<String>, part: Int): Long {
     var result = 0L
 
+    // Load ranges.
     val blankIndex = lines.indexOf("")
-    val freshRanges = lines.take(blankIndex)
+    val overlappingRanges = lines.take(blankIndex)
         .map { line ->
             val (low, high) = line.split('-').map { it.toLong() }
             low..high
         }
+        .sortedBy { it.first }
+        .toMutableList()
+
+    // Make them non-overlapping.
+    val ranges = mutableListOf<LongRange>()
+    for (i in overlappingRanges.indices) {
+        val current = overlappingRanges[i]
+        val next = overlappingRanges.getOrNull(i + 1)
+        if (next == null || current.last < next.first) {
+            ranges.add(current)
+        } else {
+            overlappingRanges[i + 1] = current.first..max(current.last,next.last)
+        }
+    }
 
     when (part) {
         1 -> {
             result = lines.drop(blankIndex + 1)
                 .map { it.toLong() }
-                .count { id -> freshRanges.any { range -> range.contains(id) } }
+                .count { id ->
+                    val index = ranges.binarySearch { range ->
+                        when {
+                            range.last < id -> -1
+                            range.first > id -> 1
+                            else -> 0
+                        }
+                    }
+                    index >= 0
+                }
                 .toLong()
         }
 
-        2 -> {
-            // Sort our ranges.
-            val ranges = freshRanges.sortedBy { it.first }.toMutableList()
-            for (i in ranges.indices) {
-                val current = ranges[i]
-                val next = ranges.getOrNull(i + 1)
-                if (next == null || current.last < next.first) {
-                    result += current.last - current.first + 1
-                } else {
-                    ranges[i + 1] = current.first..max(current.last,next.last)
-                }
-            }
-        }
+        2 -> result = ranges.sumOf { it.last - it.first + 1 }
     }
 
     return result
