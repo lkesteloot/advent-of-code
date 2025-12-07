@@ -264,9 +264,42 @@ fun day6(lines: List<String>, part: Int): Long {
     return result
 }
 
+fun day7(lines: List<String>, part: Int): Long {
+    val width = lines[0].length
+
+    var tach = List(width) { index -> if (lines[0][index] == 'S') 1L else 0L }
+    var splitCount = 0L
+
+    for (line in lines) {
+        val newTach = MutableList(width) { 0L }
+        for (i in 0 until width) {
+            if (tach[i] > 0) {
+                if (line[i] == '^') {
+                    splitCount += 1
+                    if (i > 0) {
+                        newTach[i - 1] += tach[i]
+                    }
+                    if (i < width - 1) {
+                        newTach[i + 1] += tach[i]
+                    }
+                } else {
+                    newTach[i] += tach[i]
+                }
+            }
+        }
+        tach = newTach
+    }
+
+    return when (part) {
+        1 -> splitCount
+        2 -> tach.sum()
+        else -> throw Error()
+    }
+}
+
 fun main() {
-    val testDay = -6 // or -1 to disable
-    arrayOf(::day1, ::day2, ::day3, ::day4, ::day5, ::day6).forEachIndexed { index, dayFunction ->
+    val testDay = -1 // or -1 to disable
+    arrayOf(::day1, ::day2, ::day3, ::day4, ::day5, ::day6, ::day7).forEachIndexed { index, dayFunction ->
         val day = index + 1
         val filename = if (day == testDay) "day$day-test.txt" else "day$day.txt"
         val lines = File(filename).readLines()
