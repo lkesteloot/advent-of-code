@@ -1,5 +1,7 @@
 import java.io.File
+import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.time.measureTimedValue
 
 enum class Part { ONE, TWO }
@@ -8,6 +10,14 @@ fun myAssert(assertion: Boolean) {
     if (!assertion) {
         throw AssertionError()
     }
+}
+
+fun <T> MutableSet<T>.removeArbitrary(): T {
+    val iterator = this.iterator()
+    if (iterator.hasNext()) {
+        return iterator.next().also { iterator.remove() }
+    }
+    throw NoSuchElementException("set is not empty")
 }
 
 fun day1(lines: List<String>, part: Part): Long {
@@ -392,17 +402,162 @@ fun day8(lines: List<String>, part: Part): Long {
     }
 }
 
+fun day9(lines: List<String>, part: Part): Long {
+    data class Tile(val x: Int, val y: Int)
+    data class Axis(val b2s: Map<Int,Int>, val size: Int)
+
+    fun remapAxis(x: List<Int>): Axis {
+        val b2s = mutableMapOf<Int,Int>()
+
+        val sx = x.toSet().sorted()
+        var small = 0
+        for (i in sx.indices) {
+            small += when {
+                i == 0 -> 0
+                sx[i] == sx[i - 1] + 1 -> 1
+                else -> 2
+            }
+            b2s[sx[i]] = small
+        }
+
+        return Axis(b2s, small + 1)
+    }
+
+    val tiles = lines
+        .map { line ->
+            val (x, y) = line.split(",").map { it.toInt() }
+            Tile(x, y)
+        }
+
+    var largestArea = 0L;
+
+    when (part) {
+        Part.ONE -> {
+            for (i in 0 until tiles.size - 1) {
+                val ti = tiles[i]
+                for (j in i + 1 until tiles.size) {
+                    val tj = tiles[j]
+
+                    val area = (abs(ti.x - tj.x) + 1).toLong()*(abs(ti.y - tj.y) + 1)
+                    largestArea = max(largestArea, area)
+                }
+            }
+        }
+
+        Part.TWO -> {
+            // Remap to a small grid size.
+            val xAxis = remapAxis(tiles.map { it.x })
+            val yAxis = remapAxis(tiles.map { it.y })
+            fun b2sTile(tile: Tile): Tile = Tile(
+                xAxis.b2s.getValue(tile.x),
+                yAxis.b2s.getValue(tile.y)
+            )
+
+            // Make an empty grid.
+            val grid = Array(yAxis.size) { BooleanArray(xAxis.size) }
+            val gridXRange = 0 until xAxis.size
+            val gridYRange = 0 until yAxis.size
+            // Draw the outline.
+            for (i in tiles.indices) {
+                val j = (i + 1) % tiles.size
+                val ti = b2sTile(tiles[i])
+                val tj = b2sTile(tiles[j])
+                if (ti.x == tj.x) {
+                    for (y in min(ti.y, tj.y)..max(ti.y, tj.y)) {
+                        grid[y][ti.x] = true
+                    }
+                } else {
+                    for (x in min(ti.x, tj.x)..max(ti.x, tj.x)) {
+                        grid[ti.y][x] = true
+                    }
+                }
+            }
+            // Flood fill the inside.
+            val startTile = if (tiles.size < 100) Tile(1, 3) else Tile(200, 200)
+            val floodSet = mutableSetOf(startTile)
+            fun exploreTile(x: Int, y: Int) {
+                if (x in gridXRange && y in gridYRange && !grid[y][x]) {
+                    grid[y][x] = true
+                    floodSet.add(Tile(x, y))
+                }
+            }
+            while (!floodSet.isEmpty()) {
+                val tile = floodSet.removeArbitrary()
+                exploreTile(tile.x - 1, tile.y)
+                exploreTile(tile.x + 1, tile.y)
+                exploreTile(tile.x, tile.y - 1)
+                exploreTile(tile.x, tile.y + 1)
+            }
+            // Make a list of spans for each row.
+            val spansList = grid.map { row ->
+                val spans = mutableListOf<IntRange>()
+                var x = 0
+                while (true) {
+                    // Skip outside.
+                    while (x < row.size && !row[x]) {
+                        x += 1
+                    }
+                    if (x == row.size) {
+                        break
+                    }
+                    val first = x
+                    // Skip inside.
+                    while (x < row.size && row[x]) {
+                        x += 1
+                    }
+                    spans.add(first until x)
+                }
+                spans
+            }
+            // Whether a rectangle is valid in the small space.
+            fun validRectangle(ti: Tile, tj: Tile): Boolean {
+                val x1 = min(ti.x, tj.x)
+                val x2 = max(ti.x, tj.x)
+                val y1 = min(ti.y, tj.y)
+                val y2 = max(ti.y, tj.y)
+                for (y in y1..y2) {
+                    val spans = spansList[y]
+                    for (span in spans) {
+                        if (span.first > x1 || span.last < x2) {
+                            return false
+                        }
+                    }
+                }
+                return true
+            }
+            // Try all rectangles, rejecting the invalid ones.
+            for (i in 0 until tiles.size - 1) {
+                val ti = tiles[i]
+                for (j in i + 1 until tiles.size) {
+                    val tj = tiles[j]
+
+                    val area = (abs(ti.x - tj.x) + 1).toLong() * (abs(ti.y - tj.y) + 1)
+                    if (area >= largestArea) {
+                        if (validRectangle(b2sTile(ti), b2sTile(tj))) {
+                            largestArea = area
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return largestArea
+}
+
 fun main() {
     val testDay = -1 // or -1 to disable
-    arrayOf(::day1, ::day2, ::day3, ::day4, ::day5, ::day6, ::day7, ::day8).forEachIndexed { index, dayFunction ->
+    arrayOf(::day1, ::day2, ::day3, ::day4, ::day5, ::day6, ::day7, ::day8, ::day9
+    ).forEachIndexed { index, dayFunction ->
         val day = index + 1
         val filename = if (day == testDay) "day$day-test.txt" else "day$day.txt"
         val lines = File(filename).readLines()
+        println("Day $day:")
         for (part in Part.entries) {
             val (result, timeTaken) = measureTimedValue {
                 dayFunction(lines, part)
             }
-            println("Day $day part $part: $result (${timeTaken.inWholeMilliseconds} ms)")
+            println("    Part ${part.toString().lowercase()}: $result (${timeTaken.inWholeMilliseconds} ms)")
         }
     }
 }
