@@ -17,7 +17,7 @@ class Dijkstra:
         self.cost_to_start = {}
         self.cost_to_start[start_node] = 0
         heapq.heappush(self.left_to_visit, (0, start_node))
-        # Map from node to list of previous nodes.
+        # Map from node to previous node.
         self.back = {}
 
     # Returns (cost, path).

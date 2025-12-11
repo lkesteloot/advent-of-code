@@ -1,4 +1,5 @@
 import java.io.File
+import java.util.PriorityQueue
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -12,13 +13,153 @@ fun myAssert(assertion: Boolean) {
     }
 }
 
-fun <T> MutableSet<T>.removeArbitrary(): T {
+fun <T> MutableSet<T>.removeFirst(): T {
     val iterator = this.iterator()
     if (iterator.hasNext()) {
         return iterator.next().also { iterator.remove() }
     }
     throw NoSuchElementException("set is not empty")
 }
+
+data class ShortestPath<NODE>(val cost: Double, val path: List<NODE>)
+
+// Dijkstra's shortest path.
+fun <NODE> shortestPath(startNode: NODE,
+                        isEndNode: (node: NODE) -> Boolean,
+                        getNeighbors: (node: NODE) -> Collection<NODE>,
+                        getCost: (node1: NODE, node2: NODE) -> Double): ShortestPath<NODE> {
+
+    data class CostNode(val cost: Double, val node: NODE) : Comparable<CostNode> {
+        override fun compareTo(other: CostNode): Int = cost.compareTo(other.cost)
+    }
+
+    val leftToVisit = PriorityQueue<CostNode>()
+    val visitedNodes = mutableSetOf<NODE>()
+    val costToStart = mutableMapOf<NODE, Double>()
+    val back = mutableMapOf<NODE, NODE>()
+
+    costToStart[startNode] = 0.0
+    leftToVisit.add(CostNode(0.0, startNode))
+
+    // Keep pulling from the priority queue until we get a node we've not processed.
+    fun getNextCostNode(): CostNode {
+        while (true) {
+            if (leftToVisit.isEmpty()) {
+                throw AssertionError("no path to end node")
+            }
+            val costNode = leftToVisit.remove()
+            if (costNode.node !in visitedNodes) {
+                return costNode
+            }
+        }
+    }
+
+    // Create a path from the start node to the end node (inclusive).
+    fun makePath(endNode: NODE): List<NODE> {
+        val path = mutableListOf<NODE>()
+        var node = endNode
+        path.add(node)
+        while (node != startNode) {
+            node = back.getValue(node)
+            path.add(node)
+        }
+        return path.reversed()
+    }
+
+    while (true) {
+        val (_, node) = getNextCostNode()
+        if (isEndNode(node)) {
+            return ShortestPath(costToStart.getValue(node), makePath(node))
+        }
+
+        val neighbors = getNeighbors(node)
+        val costToUs = costToStart.getValue(node)
+        for (neighbor in neighbors) {
+            if (neighbor !in visitedNodes) {
+                val costFromUsToNeighbor = getCost(node, neighbor)
+                val costToNeighbor = costToStart[neighbor]
+                val costToNeighborThroughUs = costToUs + costFromUsToNeighbor
+                if (costToNeighbor == null || costToNeighborThroughUs < costToNeighbor) {
+                    costToStart[neighbor] = costToNeighborThroughUs
+                    leftToVisit.add(CostNode(costToNeighborThroughUs, neighbor))
+                    back[neighbor] = node
+                }
+            }
+        }
+    }
+}
+
+// A* finds a path from start to goal.
+// h is the heuristic function. h(n) estimates the cost to reach goal from node n.
+// weight is actual distance between two nodes.
+fun <NODE> aStarSearch(start: NODE,
+                       goal: NODE,
+                       getHeuristic: (node: NODE, goal: NODE) -> Double,
+                       getNeighbors: (node: NODE) -> Collection<NODE>,
+                       getCost: (node1: NODE, node2: NODE) -> Double): ShortestPath<NODE> {
+
+    data class CostNode(val cost: Double, val node: NODE) : Comparable<CostNode> {
+        override fun compareTo(other: CostNode): Int = cost.compareTo(other.cost)
+    }
+
+    // For node n, cameFrom[n] is the node immediately preceding it on the cheapest path from the start
+    // to n currently known.
+    val cameFrom = mutableMapOf<NODE,NODE>()
+
+    // For node n, gScore[n] is the currently known cost of the cheapest path from start to n.
+    val gScore = mutableMapOf<NODE,Double>().withDefault { Double.MAX_VALUE }
+    gScore[start] = 0.0
+
+    // For node n, fScore[n] = gScore[n] + h(n). fScore[n] represents our current best guess as to
+    // how cheap a path could be from start to finish if it goes through n.
+    val fScore = mutableMapOf<NODE,Double>().withDefault { Double.MAX_VALUE }
+    fScore[start] = getHeuristic(start, goal)
+
+    // The set of discovered nodes that may need to be (re-)expanded.
+    // Initially, only the start node is known.
+    // This is usually implemented as a min-heap or priority queue rather than a hash-set.
+    val openSet = PriorityQueue<CostNode>()
+    openSet.add(CostNode(fScore.getValue(start), start))
+
+    val processed = mutableSetOf<NODE>()
+
+    while (!openSet.isEmpty()) {
+        var current = openSet.remove().node
+        if (current == goal) {
+            val totalPath = mutableListOf(current)
+            var cost = 0.0
+            while (current in cameFrom) {
+                val from = cameFrom.getValue(current)
+                cost += getCost(from, current)
+                current = from
+                totalPath.add(current)
+            }
+            return ShortestPath(cost, totalPath.reversed())
+        }
+
+        if (current in processed) {
+            continue
+        }
+        processed.add(current)
+
+        for (neighbor in getNeighbors(current)) {
+            // weight(current,neighbor) is the weight of the edge from current to neighbor
+            // tentative_gScore is the distance from start to the neighbor through current
+            val tentativeGScore = gScore.getValue(current) + getCost(current, neighbor)
+            if (tentativeGScore < gScore.getValue(neighbor)) {
+                // This path to neighbor is better than any previous one. Record it!
+                cameFrom[neighbor] = current
+                gScore[neighbor] = tentativeGScore
+                fScore[neighbor] = tentativeGScore + getHeuristic(neighbor, goal)
+                openSet.add(CostNode(fScore.getValue(neighbor), neighbor))
+            }
+        }
+    }
+
+    // Open set is empty but goal was never reached.
+    throw Error("goal not reachable")
+}
+
 
 fun day1(lines: List<String>, part: Part): Long {
     var pos = 50
@@ -482,7 +623,7 @@ fun day9(lines: List<String>, part: Part): Long {
                 }
             }
             while (!floodSet.isEmpty()) {
-                val tile = floodSet.removeArbitrary()
+                val tile = floodSet.removeFirst()
                 exploreTile(tile.x - 1, tile.y)
                 exploreTile(tile.x + 1, tile.y)
                 exploreTile(tile.x, tile.y - 1)
@@ -545,9 +686,169 @@ fun day9(lines: List<String>, part: Part): Long {
     return largestArea
 }
 
+fun day10(lines: List<String>, part: Part): Long {
+    return 0L
+    data class Machine(val targetLights: Int, val buttonLights: List<Int>, val buttonJoltage: List<List<Int>>, val joltage: List<Int>)
+
+    // [...#.] (0,2,3,4) (2,3) (0,4) (0,1,2) (1,2,3,4) {7,5,12,7,2}
+    val machines = lines
+        .map { line ->
+            val parts = line.split(" ")
+            val targetLights = parts[0]
+                .drop(1)
+                .dropLast(1)
+                .mapIndexed { index, ch -> if (ch == '#') 1 shl index else 0 }
+                .sum()
+            val buttonLights = parts
+                .drop(1)
+                .dropLast(1)
+                .map { button ->
+                    button
+                        .drop(1)
+                        .dropLast(1)
+                        .split(',')
+                        .sumOf { 1 shl it.toInt() }
+                }
+            val joltage = parts.last()
+                .drop(1)
+                .dropLast(1)
+                .split(',')
+                .map(String::toInt)
+            val buttonJoltage = parts
+                .drop(1)
+                .dropLast(1)
+                .map { button ->
+                    val indices = button
+                        .drop(1)
+                        .dropLast(1)
+                        .split(',')
+                        .map(String::toInt)
+                    MutableList(joltage.size) { index -> if (index in indices) 1 else 0 }
+                }
+            Machine(targetLights, buttonLights, buttonJoltage, joltage)
+        }
+        .take(1)
+
+    for (m in machines) {
+//        println(m)
+    }
+
+    fun addJoltage(a: List<Int>, b: List<Int>): List<Int> {
+        myAssert(a.size == b.size)
+        return a.zip(b).map { (a,b) -> a+b }
+    }
+
+    fun distanceSquaredJoltage(a: List<Int>, b: List<Int>): Double {
+        myAssert(a.size == b.size)
+        return a.zip(b).sumOf { (a, b) -> (a - b).toDouble()*(a - b) }
+    }
+
+    fun lessThanOrEqualsJoltage(a: List<Int>, b: List<Int>): Boolean {
+        myAssert(a.size == b.size)
+        return a.zip(b).all { (a,b) -> a <= b }
+    }
+
+    fun fewestButtonPressesForLights(machine: Machine): Long {
+        val result = shortestPath(0,
+            { lights -> lights == machine.targetLights },
+            { lights -> machine.buttonLights.map { toggleLights -> lights xor toggleLights }},
+            { n1, n2 -> 1.0 })
+        println(result.cost)
+        return result.cost.toLong()
+    }
+
+    val machine = machines[0]
+    val visitedNodes = mutableSetOf<List<Int>>()
+    println(visitedNodes.size)
+    visitedNodes.add(List(machine.joltage.size) { 0 })
+    println(visitedNodes.size)
+    visitedNodes.add(List(machine.joltage.size) { 0 })
+    println(visitedNodes.size)
+    val joltage = visitedNodes.first()
+    visitedNodes.add(addJoltage(joltage, machine.buttonJoltage[0]))
+    println(visitedNodes.size)
+    visitedNodes.add(addJoltage(joltage, machine.buttonJoltage[0]))
+    println(visitedNodes.size)
+
+
+
+    fun fewestButtonPressesForJoltage(machine: Machine): Long {
+        /*
+        val result = shortestPath(List(machine.joltage.size) { 0 },
+            { joltage -> joltage == machine.joltage },
+            { joltage -> machine.buttonJoltage
+                .map { addJoltage -> addJoltage(joltage, addJoltage) }
+                .filter { joltage -> lessThanOrEqualsJoltage(joltage, machine.joltage) }},
+            { n1, n2 -> 1.0 })
+         */
+        val result = aStarSearch(
+            List(machine.joltage.size) { 0 },
+            machine.joltage,
+            { n1, n2 -> distanceSquaredJoltage(n1, n2) },
+            { joltage ->
+                machine.buttonJoltage
+                    .map { addJoltage -> addJoltage(joltage, addJoltage) }
+                    .filter { joltage -> lessThanOrEqualsJoltage(joltage, machine.joltage) }
+            },
+            { n1, n2 -> 1.0 })
+        println(result.cost)
+        return result.cost.toLong()
+    }
+
+    return when (part) {
+        Part.ONE -> machines.sumOf { fewestButtonPressesForLights(it) }
+        Part.TWO -> machines.sumOf { fewestButtonPressesForJoltage(it) }
+    }
+}
+
+fun day11(lines: List<String>, part: Part): Long {
+    data class Device(val name: String, val outputs: List<String>)
+    data class Counts(val all: Long, val dac: Long, val fft: Long, val both: Long) {
+        operator fun plus(other: Counts): Counts =
+            Counts(all + other.all, dac + other.dac, fft + other.fft, both + other.both)
+    }
+
+    val devices = lines
+        .map { line ->
+            // ccc: ddd eee fff
+            val (name, outputString) = line.split(": ")
+            val outputs = outputString.split(" ")
+            Device(name, outputs)
+        }
+    val nameToDevice = devices.associateBy { it.name }
+    val nameToCounts = mutableMapOf<String,Counts>()
+
+    fun getCountsToOut(name: String): Counts {
+        if (name == "out") {
+            return Counts(1, 0, 0, 0)
+        }
+        var counts = nameToCounts[name]
+        if (counts != null) {
+            return counts
+        }
+        val device = nameToDevice.getValue(name)
+        counts = device.outputs.map(::getCountsToOut).reduce { a, b -> a + b }
+        counts = Counts(counts.all,
+            if (name == "dac") counts.all else counts.dac,
+            if (name == "fft") counts.all else counts.fft,
+            when (name) {
+                "dac" -> counts.fft
+                "fft" -> counts.dac
+                else -> counts.both
+            })
+        nameToCounts[name] = counts
+        return counts
+    }
+
+    return when (part) {
+        Part.ONE -> getCountsToOut("you").all
+        Part.TWO -> getCountsToOut("svr").both
+    }
+}
+
 fun main() {
-    val testDay = -1 // or -1 to disable
-    arrayOf(::day1, ::day2, ::day3, ::day4, ::day5, ::day6, ::day7, ::day8, ::day9
+    val testDay = -11 // or -1 to disable
+    arrayOf(::day1, ::day2, ::day3, ::day4, ::day5, ::day6, ::day7, ::day8, ::day9, ::day10, ::day11
     ).forEachIndexed { index, dayFunction ->
         val day = index + 1
         val filename = if (day == testDay) "day$day-test.txt" else "day$day.txt"
