@@ -687,7 +687,6 @@ fun day9(lines: List<String>, part: Part): Long {
 }
 
 fun day10(lines: List<String>, part: Part): Long {
-    return 0L
     data class Machine(val targetLights: Int, val buttonLights: List<Int>, val buttonJoltage: List<List<Int>>, val joltage: List<Int>)
 
     // [...#.] (0,2,3,4) (2,3) (0,4) (0,1,2) (1,2,3,4) {7,5,12,7,2}
@@ -727,11 +726,6 @@ fun day10(lines: List<String>, part: Part): Long {
                 }
             Machine(targetLights, buttonLights, buttonJoltage, joltage)
         }
-        .take(1)
-
-    for (m in machines) {
-//        println(m)
-    }
 
     fun addJoltage(a: List<Int>, b: List<Int>): List<Int> {
         myAssert(a.size == b.size)
@@ -753,24 +747,8 @@ fun day10(lines: List<String>, part: Part): Long {
             { lights -> lights == machine.targetLights },
             { lights -> machine.buttonLights.map { toggleLights -> lights xor toggleLights }},
             { n1, n2 -> 1.0 })
-        println(result.cost)
         return result.cost.toLong()
     }
-
-    val machine = machines[0]
-    val visitedNodes = mutableSetOf<List<Int>>()
-    println(visitedNodes.size)
-    visitedNodes.add(List(machine.joltage.size) { 0 })
-    println(visitedNodes.size)
-    visitedNodes.add(List(machine.joltage.size) { 0 })
-    println(visitedNodes.size)
-    val joltage = visitedNodes.first()
-    visitedNodes.add(addJoltage(joltage, machine.buttonJoltage[0]))
-    println(visitedNodes.size)
-    visitedNodes.add(addJoltage(joltage, machine.buttonJoltage[0]))
-    println(visitedNodes.size)
-
-
 
     fun fewestButtonPressesForJoltage(machine: Machine): Long {
         /*
@@ -791,7 +769,6 @@ fun day10(lines: List<String>, part: Part): Long {
                     .filter { joltage -> lessThanOrEqualsJoltage(joltage, machine.joltage) }
             },
             { n1, n2 -> 1.0 })
-        println(result.cost)
         return result.cost.toLong()
     }
 
@@ -847,9 +824,9 @@ fun day11(lines: List<String>, part: Part): Long {
 }
 
 fun main() {
-    val testDay = -11 // or -1 to disable
-    arrayOf(::day1, ::day2, ::day3, ::day4, ::day5, ::day6, ::day7, ::day8, ::day9, ::day10, ::day11
-    ).forEachIndexed { index, dayFunction ->
+    val testDay = 10 // or -1 to disable
+    arrayOf(::day1, ::day2, ::day3, ::day4, ::day5, ::day6,
+        ::day7, ::day8, ::day9, ::day10, ::day11).forEachIndexed { index, dayFunction ->
         val day = index + 1
         val filename = if (day == testDay) "day$day-test.txt" else "day$day.txt"
         val lines = File(filename).readLines()
