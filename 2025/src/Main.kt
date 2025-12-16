@@ -570,7 +570,7 @@ fun day9(lines: List<String>, part: Part): Long {
             Tile(x, y)
         }
 
-    var largestArea = 0L;
+    var largestArea = 0L
 
     when (part) {
         Part.ONE -> {
@@ -686,95 +686,126 @@ fun day9(lines: List<String>, part: Part): Long {
     return largestArea
 }
 
+@JvmInline
+value class Joltages(val values: List<Int>) {
+    val size get() = values.size
+    operator fun plus(o: Joltages) = values.zip(o.values).map { (a, b) -> a + b }.toJoltages()
+    operator fun minus(o: Joltages) = values.zip(o.values).map { (a, b) -> a - b }.toJoltages()
+    operator fun div(o: Int) = values.map { it / o }.toJoltages()
+}
+
+fun List<Int>.toJoltages() = Joltages(this)
+
 fun day10(lines: List<String>, part: Part): Long {
-    data class Machine(val targetLights: Int, val buttonLights: List<Int>, val buttonJoltage: List<List<Int>>, val joltage: List<Int>)
+    data class Machine(
+        val lights: Int,
+        val buttonLights: List<Int>,
+        val buttonJoltages: List<Joltages>,
+        val joltages: Joltages
+    )
+
+    fun <E> List<E>.clipEnds() = drop(1).dropLast(1)
+    fun String.clipEnds() = drop(1).dropLast(1)
 
     // [...#.] (0,2,3,4) (2,3) (0,4) (0,1,2) (1,2,3,4) {7,5,12,7,2}
     val machines = lines
         .map { line ->
             val parts = line.split(" ")
             val targetLights = parts[0]
-                .drop(1)
-                .dropLast(1)
+                .clipEnds()
                 .mapIndexed { index, ch -> if (ch == '#') 1 shl index else 0 }
                 .sum()
-            val buttonLights = parts
-                .drop(1)
-                .dropLast(1)
-                .map { button ->
-                    button
-                        .drop(1)
-                        .dropLast(1)
-                        .split(',')
-                        .sumOf { 1 shl it.toInt() }
-                }
             val joltage = parts.last()
-                .drop(1)
-                .dropLast(1)
+                .clipEnds()
                 .split(',')
                 .map(String::toInt)
+                .toJoltages()
             val buttonJoltage = parts
-                .drop(1)
-                .dropLast(1)
+                .clipEnds()
                 .map { button ->
                     val indices = button
-                        .drop(1)
-                        .dropLast(1)
+                        .clipEnds()
                         .split(',')
                         .map(String::toInt)
-                    MutableList(joltage.size) { index -> if (index in indices) 1 else 0 }
+                    List(joltage.size) { index -> if (index in indices) 1 else 0 }.toJoltages()
+                }
+            val buttonLights = buttonJoltage
+                .map { button -> button.values
+                    .mapIndexed { index, value -> value shl index }
+                    .sum()
                 }
             Machine(targetLights, buttonLights, buttonJoltage, joltage)
         }
 
-    fun addJoltage(a: List<Int>, b: List<Int>): List<Int> {
-        myAssert(a.size == b.size)
-        return a.zip(b).map { (a,b) -> a+b }
-    }
-
-    fun distanceSquaredJoltage(a: List<Int>, b: List<Int>): Double {
-        myAssert(a.size == b.size)
-        return a.zip(b).sumOf { (a, b) -> (a - b).toDouble()*(a - b) }
-    }
-
-    fun lessThanOrEqualsJoltage(a: List<Int>, b: List<Int>): Boolean {
-        myAssert(a.size == b.size)
-        return a.zip(b).all { (a,b) -> a <= b }
-    }
-
     fun fewestButtonPressesForLights(machine: Machine): Long {
         val result = shortestPath(0,
-            { lights -> lights == machine.targetLights },
+            { lights -> lights == machine.lights },
             { lights -> machine.buttonLights.map { toggleLights -> lights xor toggleLights }},
-            { n1, n2 -> 1.0 })
+            { _, _ -> 1.0 })
         return result.cost.toLong()
     }
 
-    fun fewestButtonPressesForJoltage(machine: Machine): Long {
-        /*
-        val result = shortestPath(List(machine.joltage.size) { 0 },
-            { joltage -> joltage == machine.joltage },
-            { joltage -> machine.buttonJoltage
-                .map { addJoltage -> addJoltage(joltage, addJoltage) }
-                .filter { joltage -> lessThanOrEqualsJoltage(joltage, machine.joltage) }},
-            { n1, n2 -> 1.0 })
-         */
-        val result = aStarSearch(
-            List(machine.joltage.size) { 0 },
-            machine.joltage,
-            { n1, n2 -> distanceSquaredJoltage(n1, n2) },
-            { joltage ->
-                machine.buttonJoltage
-                    .map { addJoltage -> addJoltage(joltage, addJoltage) }
-                    .filter { joltage -> lessThanOrEqualsJoltage(joltage, machine.joltage) }
-            },
-            { n1, n2 -> 1.0 })
-        return result.cost.toLong()
+    fun fewestButtonPressesForJoltages(machine: Machine): Long {
+        val joltageCount = machine.joltages.size
+        val buttonCount = machine.buttonLights.size
+        val zeroJoltages = List(joltageCount) { 0 }.toJoltages()
+
+        // Pre-compute map from desired least-significant bits to [Joltage,Button Press Count]
+        // array (in the form of a map so we can look them up by Joltage easily).
+        val lsbToJoltages = mutableMapOf<Int, MutableMap<Joltages, Int>>()
+        val lsbCount = 1 shl buttonCount
+        for (lsb in 0..<lsbCount) {
+            var joltages = zeroJoltages
+            var lights = 0
+            var pressCount = 0
+            for (buttonIndex in 0..<buttonCount) {
+                if (((1 shl buttonIndex) and lsb) != 0) {
+                    lights = lights xor machine.buttonLights[buttonIndex]
+                    joltages += machine.buttonJoltages[buttonIndex]
+                    pressCount += 1
+                }
+            }
+
+            // Add to list of ways to get this LSB pattern.
+            val list = lsbToJoltages.getOrPut(lights) { mutableMapOf() }
+            // If the same joltages can be used to get this LSB, keep the one with the fewest button presses.
+            val existingPressCount = list[joltages]
+            if (existingPressCount == null || pressCount < existingPressCount) {
+                list[joltages] = pressCount
+            }
+        }
+
+        // Memoize f().
+        val fCache = mutableMapOf<Joltages, Double>()
+        lateinit var f: (Joltages) -> Double
+        fun fImpl(targetJoltages: Joltages): Double {
+            if (targetJoltages.values.all { it == 0 }) {
+                return 0.0
+            }
+            val lsb = targetJoltages.values
+                .mapIndexed { index, value -> (value and 1) shl index }
+                .sum()
+
+            var minPresses = Double.POSITIVE_INFINITY
+            if (lsb in lsbToJoltages) {
+                for ((joltages, pressCount) in lsbToJoltages.getValue(lsb)) {
+                    val remainingJoltages = targetJoltages - joltages
+                    if (remainingJoltages.values.all { it >= 0 }) {
+                        minPresses = min(minPresses, 2 * f(remainingJoltages / 2) + pressCount)
+                    }
+                }
+            }
+
+            return minPresses
+        }
+        f = { targetJoltages -> fCache.getOrPut(targetJoltages) { fImpl(targetJoltages) } }
+
+        return f(machine.joltages).toLong()
     }
 
     return when (part) {
         Part.ONE -> machines.sumOf { fewestButtonPressesForLights(it) }
-        Part.TWO -> machines.sumOf { fewestButtonPressesForJoltage(it) }
+        Part.TWO -> machines.sumOf { fewestButtonPressesForJoltages(it) }
     }
 }
 
@@ -824,7 +855,7 @@ fun day11(lines: List<String>, part: Part): Long {
 }
 
 fun main() {
-    val testDay = 10 // or -1 to disable
+    val testDay = -1 // or -1 to disable
     arrayOf(::day1, ::day2, ::day3, ::day4, ::day5, ::day6,
         ::day7, ::day8, ::day9, ::day10, ::day11).forEachIndexed { index, dayFunction ->
         val day = index + 1
